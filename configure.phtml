@@ -1,0 +1,100 @@
+<?php
+/** @var FreshRSS_Extension $this */
+$provider = FreshRSS_Context::$user_conf->ai_summary_provider ?? '';
+$apiKey = FreshRSS_Context::$user_conf->ai_summary_api_key ?? '';
+$model = FreshRSS_Context::$user_conf->ai_summary_model ?? '';
+$apiUrl = FreshRSS_Context::$user_conf->ai_summary_api_url ?? '';
+$prompt = FreshRSS_Context::$user_conf->ai_summary_prompt ?? '';
+$language = FreshRSS_Context::$user_conf->ai_summary_language ?? '';
+$languages = [
+	'' => _t('ext.ai_summary.language_auto'),
+	'en' => 'English',
+	'cs' => 'Czech (Čeština)',
+	'de' => 'German (Deutsch)',
+	'es' => 'Spanish (Español)',
+	'fr' => 'French (Français)',
+	'it' => 'Italian (Italiano)',
+	'ja' => 'Japanese (日本語)',
+	'ko' => 'Korean (한국어)',
+	'nl' => 'Dutch (Nederlands)',
+	'pl' => 'Polish (Polski)',
+	'pt-br' => 'Portuguese (Português)',
+	'ru' => 'Russian (Русский)',
+	'tr' => 'Turkish (Türkçe)',
+	'zh-cn' => 'Chinese (中文)',
+];
+?>
+<form action="<?= _url('extension', 'configure', 'e', urlencode($this->getName())) ?>" method="post">
+	<input type="hidden" name="_csrf" value="<?= FreshRSS_Auth::csrfToken() ?>" />
+
+	<div class="form-group">
+		<label class="group-name" for="ai_summary_provider"><?= _t('ext.ai_summary.provider') ?></label>
+		<div class="group-controls">
+			<select name="ai_summary_provider" id="ai_summary_provider">
+				<option value="openai" <?= $provider === 'openai' ? 'selected' : '' ?>>OpenAI (ChatGPT)</option>
+				<option value="anthropic" <?= $provider === 'anthropic' ? 'selected' : '' ?>>Anthropic (Claude)</option>
+				<option value="gemini" <?= $provider === 'gemini' ? 'selected' : '' ?>>Google (Gemini)</option>
+				<option value="ollama" <?= $provider === 'ollama' ? 'selected' : '' ?>>Ollama</option>
+			</select>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="group-name" for="ai_summary_api_key"><?= _t('ext.ai_summary.api_key') ?></label>
+		<div class="group-controls">
+			<input type="password" name="ai_summary_api_key" id="ai_summary_api_key"
+				value="<?= htmlspecialchars($apiKey, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+				placeholder="sk-..." />
+			<p class="help"><?= _t('ext.ai_summary.api_key_help') ?></p>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="group-name" for="ai_summary_model"><?= _t('ext.ai_summary.model') ?></label>
+		<div class="group-controls">
+			<input type="text" name="ai_summary_model" id="ai_summary_model"
+				value="<?= htmlspecialchars($model, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+				placeholder="<?= _t('ext.ai_summary.model_placeholder') ?>" />
+			<p class="help"><?= _t('ext.ai_summary.model_help') ?></p>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="group-name" for="ai_summary_api_url"><?= _t('ext.ai_summary.api_url') ?></label>
+		<div class="group-controls">
+			<input type="url" name="ai_summary_api_url" id="ai_summary_api_url"
+				value="<?= htmlspecialchars($apiUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+				placeholder="http://localhost:11434" />
+			<p class="help"><?= _t('ext.ai_summary.api_url_help') ?></p>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="group-name" for="ai_summary_prompt"><?= _t('ext.ai_summary.prompt') ?></label>
+		<div class="group-controls">
+			<textarea name="ai_summary_prompt" id="ai_summary_prompt" rows="4"
+				placeholder="<?= _t('ext.ai_summary.prompt_placeholder') ?>"
+			><?= htmlspecialchars($prompt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></textarea>
+			<p class="help"><?= _t('ext.ai_summary.prompt_help') ?></p>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="group-name" for="ai_summary_language"><?= _t('ext.ai_summary.language') ?></label>
+		<div class="group-controls">
+			<select name="ai_summary_language" id="ai_summary_language">
+				<?php foreach ($languages as $code => $name): ?>
+				<option value="<?= htmlspecialchars($code, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+					<?= $language === $code ? 'selected' : '' ?>><?= htmlspecialchars($name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></option>
+				<?php endforeach; ?>
+			</select>
+			<p class="help"><?= _t('ext.ai_summary.language_help') ?></p>
+		</div>
+	</div>
+
+	<div class="form-group form-actions">
+		<div class="group-controls">
+			<button type="submit" class="btn btn-important"><?= _t('ext.ai_summary.save') ?></button>
+		</div>
+	</div>
+</form>
