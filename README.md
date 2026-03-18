@@ -19,7 +19,9 @@
 
 ## Features
 
-- **One-click summaries** — A "Summarize" button appears in every article and in the toolbar. Click it to get an AI-generated summary right below the title.
+- **One-click summaries** — A "Summarize" button appears in every article. Click it to get an AI-generated summary streamed in real time below the title.
+- **Real-time streaming** — Summaries are delivered via Server-Sent Events (SSE), so you see text appear as the AI generates it, with a live typing cursor.
+- **Auto-fetch full articles** — When the RSS feed only contains a short excerpt, the extension automatically fetches and parses the full article from the original URL.
 - **4 AI providers** — Choose the one that fits your setup:
 
   | Provider | Default Model | API Key Required |
@@ -29,9 +31,11 @@
   | Google (Gemini) | `gemini-2.5-flash` | Yes |
   | Ollama | `llama3.2` | No |
 
-- **Custom prompts** — Override the default summarization prompt to fit your needs.
+- **Custom prompts** — Override the default summarization prompt. Use `{content}`, `{title}`, and `{language}` placeholders in your template.
+- **Language override** — Choose the summary output language independently of your FreshRSS UI language.
 - **Toggle summaries** — Click again to show/hide a cached summary without re-fetching.
-- **Dark theme support** — Adapts to FreshRSS light and dark themes.
+- **Markdown formatting** — AI responses are rendered with support for headers, bold, italic, inline code, lists, and horizontal rules.
+- **Theme-aware styling** — Adapts to your FreshRSS theme's colors with a gradient border accent.
 - **14 languages** — cs, de, en, es, fr, it, ja, ko, nl, pl, pt-br, ru, tr, zh-cn.
 - **Secure** — API keys stay server-side. All requests are proxied through PHP.
 
@@ -64,7 +68,8 @@ git clone https://github.com/deimosfr/xExtension-AiSummary.git
 | **API Key** | Your provider's API key. Not required for Ollama. |
 | **Model** | Leave empty to use the provider's default (see table above), or specify any model your provider supports. |
 | **API URL** | Only for Ollama. Defaults to `http://localhost:11434`. |
-| **Custom Prompt** | Override the system prompt sent to the AI. Leave empty for the built-in default. |
+| **Custom Prompt** | Override the system prompt sent to the AI. Supports `{content}`, `{title}`, and `{language}` placeholders. Leave empty for the built-in default. |
+| **Language** | Override the summary output language. Defaults to your FreshRSS UI language. |
 
 ## How It Works
 
@@ -75,16 +80,18 @@ User clicks "Summarize"
   JS sends AJAX POST ──> AiSummaryController (PHP)
                               |
                               ├── Fetches article from database
+                              ├── If content is too short, fetches full article from URL
                               ├── Strips HTML, truncates to 12k chars
                               ├── Builds prompt (system + article content)
                               └── Calls AI provider API via cURL
                                       |
                                       v
-                              Returns JSON summary
+                              Streams response via SSE
+                              (status → chunks → done)
                                       |
                                       v
                           JS renders formatted summary
-                          below the article title
+                          in real time below the article title
 ```
 
 ## Development
