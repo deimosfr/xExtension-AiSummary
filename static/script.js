@@ -1,6 +1,49 @@
 'use strict';
 
 (function () {
+	var aiIcon = '<svg class="ai-summary-icon" viewBox="0 0 512 512" width="16" height="16" fill="currentColor">'
+		+ '<path d="M208 0c13 0 22 9 25 21l26 105 105 26c12 3 21 12 21 25s-9 22-21 25l-105 26-26 105c-3 12-12 21-25 21s-22-9-25-21l-26-105L52 202c-12-3-21-12-21-25s9-22 21-25l105-26L183 21c3-12 12-21 25-21z"/>'
+		+ '<path d="M384 288c8 0 14 5 16 13l14 55 55 14c8 2 13 8 13 16s-5 14-13 16l-55 14-14 55c-2 8-8 13-16 13s-14-5-16-13l-14-55-55-14c-8-2-13-8-13-16s5-14 13-16l55-14 14-55c2-8 8-13 16-13z" opacity="0.7"/>'
+		+ '</svg>';
+
+	function initButtons() {
+		var wrappers = document.querySelectorAll('.ai-summary-wrapper:not(.ai-summary-initialized)');
+		wrappers.forEach(function (wrapper) {
+			var label = wrapper.dataset.label || 'Summarize';
+			wrapper.innerHTML = '<button type="button" class="ai-summary-btn btn btn-important">' + aiIcon + ' <span class="ai-summary-label"></span></button>'
+				+ '<div class="ai-summary-content"></div>';
+			// Security fix: use textContent for label
+			var labelSpan = wrapper.querySelector('.ai-summary-label');
+			if (labelSpan) {
+				labelSpan.textContent = label;
+			}
+			wrapper.classList.add('ai-summary-initialized');
+		});
+	}
+
+	// Initialize on load
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initButtons);
+	} else {
+		initButtons();
+	}
+
+	// More robust dynamic content discovery
+	var observer = new MutationObserver(function () {
+		initButtons();
+	});
+	if (document.body) {
+		observer.observe(document.body, { childList: true, subtree: true });
+	} else {
+		document.addEventListener('DOMContentLoaded', function () {
+			observer.observe(document.body, { childList: true, subtree: true });
+		});
+	}
+
+	// Periodic poll for late-loading dynamic content (fallback)
+	// Some themes or views (like Reader) might inject content in ways that are tricky to observe
+	setInterval(initButtons, 1000);
+
 	// Handle summarize button clicks (event delegation)
 	document.addEventListener('click', function (e) {
 		var btn = e.target.closest('.ai-summary-btn');

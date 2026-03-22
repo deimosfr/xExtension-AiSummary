@@ -1,8 +1,17 @@
 .ai-summary-wrapper {
-	margin-bottom: 1em;
-	padding-bottom: 1em;
-	border-bottom: 1px solid var(--frss-border-color, #ddd);
 	text-align: center;
+	display: block;
+}
+
+.ai-summary-wrapper.ai-summary-initialized {
+	margin-bottom: 1.5em;
+	padding-bottom: 1.5em;
+	border-bottom: 1px solid var(--frss-border-color, #eee);
+}
+
+/* Hide ONLY in collapsed list items in Normal view */
+.flux:not(.expanded):not(.open):not(.current) .ai-summary-wrapper {
+	display: none !important;
 }
 
 .ai-summary-btn {

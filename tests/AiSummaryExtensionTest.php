@@ -13,14 +13,14 @@ final class AiSummaryExtensionTest extends TestCase {
 		$this->extension = new AiSummaryExtension();
 	}
 
-	public function testEntryBeforeDisplayHookInjectsSummarizeButton(): void {
+	public function testEntryBeforeDisplayHookInjectsWrapper(): void {
 		$entry = new FreshRSS_Entry('123', 'My Article', '<p>Original content</p>');
 
 		$result = $this->extension->entryBeforeDisplayHook($entry);
 
 		self::assertStringContainsString('ai-summary-wrapper', $result->content());
-		self::assertStringContainsString('ai-summary-btn', $result->content());
-		self::assertStringContainsString('ai-summary-content', $result->content());
+		self::assertStringNotContainsString('ai-summary-btn', $result->content());
+		self::assertStringNotContainsString('ai-summary-content', $result->content());
 	}
 
 	public function testHookPreservesOriginalContent(): void {
@@ -69,17 +69,18 @@ final class AiSummaryExtensionTest extends TestCase {
 		self::assertSame($entry, $result);
 	}
 
-	public function testHookContainsSummarizeLabel(): void {
+	public function testHookContainsSummarizeLabelInDataAttribute(): void {
 		$entry = new FreshRSS_Entry('1', 'T', '<p>C</p>');
 
 		$result = $this->extension->entryBeforeDisplayHook($entry);
 
 		// The label comes from _t() which in our stub returns the key
-		self::assertStringContainsString('ext.ai_summary.summarize', $result->content());
+		$this->assertStringContainsString('<div class="ai-summary-wrapper" data-entry-id="1" data-label="ext.ai_summary.summarize"><span></span></div>', $entry->content());
 	}
 
 	public function testHandleConfigureActionSavesConfig(): void {
 		Minz_Request::setParam('_method', 'POST');
+		Minz_Request::setParam('_csrf', 'test-csrf-token');
 		Minz_Request::setParam('ai_summary_provider', 'anthropic');
 		Minz_Request::setParam('ai_summary_api_key', 'sk-ant-test');
 		Minz_Request::setParam('ai_summary_model', 'claude-sonnet-4-6');

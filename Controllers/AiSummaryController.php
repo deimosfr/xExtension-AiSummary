@@ -59,6 +59,11 @@ PROMPT;
 			return;
 		}
 
+		// CSRF protection
+		if (Minz_Request::param('_csrf') !== FreshRSS_Auth::csrfToken()) {
+			Minz_Error::error(403);
+		}
+
 		$id = Minz_Request::param('id', '');
 		if ($id === '') {
 			header('Content-Type: application/json; charset=UTF-8');
@@ -148,6 +153,10 @@ PROMPT;
 	}
 
 	private function beginStreaming(): void {
+		if (defined('AI_SUMMARY_TESTING')) {
+			return;
+		}
+
 		header('Content-Type: text/event-stream; charset=UTF-8');
 		header('Cache-Control: no-cache');
 		header('X-Accel-Buffering: no');
@@ -296,6 +305,11 @@ PROMPT;
 	}
 
 	private function fetchArticleContent(string $url): string {
+		$scheme = parse_url($url, PHP_URL_SCHEME);
+		if (!in_array($scheme, ['http', 'https'], true)) {
+			return '';
+		}
+
 		$ch = curl_init($url);
 		if ($ch === false) {
 			return '';
