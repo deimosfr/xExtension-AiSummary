@@ -13,6 +13,7 @@ final class AiSummaryControllerTest extends TestCase {
 		FreshRSS_Context::init();
 		FreshRSS_Auth::setAccess(true);
 		Minz_Request::reset();
+		Minz_Request::setParam('_csrf', 'test-csrf-token');
 		FreshRSS_EntryDAO::clearEntries();
 	}
 
@@ -56,6 +57,7 @@ final class AiSummaryControllerTest extends TestCase {
 	}
 
 	public function testSummarizeReturnsMissingIdError(): void {
+		Minz_Request::setParam('_csrf', 'test-csrf-token');
 		$output = $this->captureOutput(fn () => $this->controller->summarizeAction());
 
 		$data = json_decode($output, true);
@@ -64,6 +66,7 @@ final class AiSummaryControllerTest extends TestCase {
 
 	public function testSummarizeReturnsEntryNotFound(): void {
 		Minz_Request::setParam('id', 'nonexistent-123');
+		Minz_Request::setParam('_csrf', 'test-csrf-token');
 
 		$output = $this->captureOutput(fn () => $this->controller->summarizeAction());
 
@@ -75,6 +78,7 @@ final class AiSummaryControllerTest extends TestCase {
 		$entry = new FreshRSS_Entry('42', 'Test Article', '<p>Content here</p>');
 		FreshRSS_EntryDAO::addEntry('42', $entry);
 		Minz_Request::setParam('id', '42');
+		Minz_Request::setParam('_csrf', 'test-csrf-token');
 		FreshRSS_Context::$user_conf->ai_summary_provider = 'openai';
 		FreshRSS_Context::$user_conf->ai_summary_api_key = '';
 
@@ -82,6 +86,16 @@ final class AiSummaryControllerTest extends TestCase {
 
 		$data = json_decode($output, true);
 		self::assertStringContainsString('API key not configured', $data['error']);
+	}
+
+	public function testSummarizeThrowsOnInvalidCsrf(): void {
+		Minz_Request::setParam('id', '42');
+		Minz_Request::setParam('_csrf', 'invalid-token');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Minz Error 403');
+
+		$this->controller->summarizeAction();
 	}
 
 	// ── summarizeAction streaming (SSE errors from curl) ──
@@ -310,6 +324,7 @@ final class AiSummaryControllerTest extends TestCase {
 		$entry = new FreshRSS_Entry('42', 'Test', '<p>Short</p>', 'https://example.com/article');
 		FreshRSS_EntryDAO::addEntry('42', $entry);
 		Minz_Request::setParam('id', '42');
+		Minz_Request::setParam('_csrf', 'test-csrf-token');
 		FreshRSS_Context::$user_conf->ai_summary_provider = 'openai';
 		FreshRSS_Context::$user_conf->ai_summary_api_key = 'sk-test';
 
@@ -318,6 +333,15 @@ final class AiSummaryControllerTest extends TestCase {
 		$error = $this->getErrorFromOutput($output);
 		self::assertNotNull($error);
 		self::assertStringNotContainsString('Entry not found', $error);
+	}
+
+	public function testFetchArticleContentValidatesScheme(): void {
+		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'fetchArticleContent');
+		
+		self::assertSame('', $ref->invoke($this->controller, 'file:///etc/passwd'), 'Should reject file:// scheme');
+		self::assertSame('', $ref->invoke($this->controller, 'ftp://example.com'), 'Should reject ftp:// scheme');
+		// Reaches curl for http/https (returns error because we didn't mock curl)
+		self::assertIsString($ref->invoke($this->controller, 'http://example.com'));
 	}
 
 	public function testShortContentSendsStatusEvents(): void {
@@ -344,7 +368,12 @@ final class AiSummaryControllerTest extends TestCase {
 
 	private function captureOutput(callable $fn): string {
 		ob_start();
-		$fn();
+		try {
+			$fn();
+		} catch (\Throwable $e) {
+			ob_end_clean();
+			throw $e;
+		}
 		return ob_get_clean() ?: '';
 	}
 

@@ -116,6 +116,13 @@ class FreshRSS_Auth {
 	}
 }
 
+// --- Minz_Error ---
+class Minz_Error {
+	public static function error(int $code): void {
+		throw new \RuntimeException('Minz Error ' . $code, $code);
+	}
+}
+
 // --- FreshRSS_Entry ---
 class FreshRSS_Entry {
 	private string $id;
