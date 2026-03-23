@@ -60,11 +60,11 @@ PROMPT;
 		}
 
 		// CSRF protection
-		if (Minz_Request::param('_csrf') !== FreshRSS_Auth::csrfToken()) {
+		if (Minz_Request::paramString('_csrf') !== FreshRSS_Auth::csrfToken()) {
 			Minz_Error::error(403);
 		}
 
-		$id = Minz_Request::param('id', '');
+		$id = Minz_Request::paramString('id');
 		if ($id === '') {
 			header('Content-Type: application/json; charset=UTF-8');
 			$this->sendJsonError('Missing entry ID', 400);
@@ -79,11 +79,22 @@ PROMPT;
 			return;
 		}
 
-		$provider = FreshRSS_Context::$user_conf->ai_summary_provider ?? 'openai';
-		$apiKey = FreshRSS_Context::$user_conf->ai_summary_api_key ?? '';
-		$model = FreshRSS_Context::$user_conf->ai_summary_model ?? '';
-		$apiUrl = FreshRSS_Context::$user_conf->ai_summary_api_url ?? '';
-		$customPrompt = FreshRSS_Context::$user_conf->ai_summary_prompt ?? '';
+		$user_conf = FreshRSS_Context::userConf();
+		/** @var mixed */
+		$provider = $user_conf->ai_summary_provider;
+		$provider = is_string($provider) ? $provider : 'openai';
+		/** @var mixed */
+		$apiKey = $user_conf->ai_summary_api_key;
+		$apiKey = is_string($apiKey) ? $apiKey : '';
+		/** @var mixed */
+		$model = $user_conf->ai_summary_model;
+		$model = is_string($model) ? $model : '';
+		/** @var mixed */
+		$apiUrl = $user_conf->ai_summary_api_url;
+		$apiUrl = is_string($apiUrl) ? $apiUrl : '';
+		/** @var mixed */
+		$customPrompt = $user_conf->ai_summary_prompt;
+		$customPrompt = is_string($customPrompt) ? $customPrompt : '';
 
 		if ($provider !== 'ollama' && $apiKey === '') {
 			header('Content-Type: application/json; charset=UTF-8');
@@ -100,7 +111,10 @@ PROMPT;
 		if (mb_strlen($content) < self::MIN_CONTENT_LENGTH) {
 			$link = $entry->link();
 			if ($link !== '') {
-				$this->sendEvent('status', json_encode(['message' => 'Fetching full article…']));
+				$statusMsg = json_encode(['message' => 'Fetching full article…']);
+				if (is_string($statusMsg)) {
+					$this->sendEvent('status', $statusMsg);
+				}
 				$fetched = $this->fetchArticleContent($link);
 				if ($fetched !== '') {
 					$content = $fetched;
@@ -111,9 +125,13 @@ PROMPT;
 		$content = mb_substr($content, 0, self::MAX_CONTENT_LENGTH);
 
 		$promptTemplate = $customPrompt !== '' ? $customPrompt : self::DEFAULT_PROMPT;
-		$langCode = FreshRSS_Context::$user_conf->ai_summary_language ?? '';
+		/** @var mixed */
+		$langCode = $user_conf->ai_summary_language;
+		$langCode = is_string($langCode) ? $langCode : '';
 		if ($langCode === '') {
-			$langCode = FreshRSS_Context::$user_conf->language ?? 'en';
+			/** @var mixed */
+			$langCode = $user_conf->language;
+			$langCode = is_string($langCode) ? $langCode : 'en';
 		}
 		$language = self::LANGUAGE_NAMES[$langCode] ?? $langCode;
 
@@ -131,16 +149,19 @@ PROMPT;
 			$userPrompt = 'Title: ' . $entry->title() . "\n\n" . $content;
 		}
 
-		$this->sendEvent('status', json_encode(['message' => 'Generating summary…']));
+		$statusMsg = json_encode(['message' => 'Generating summary…']);
+		if (is_string($statusMsg)) {
+			$this->sendEvent('status', $statusMsg);
+		}
 
 		try {
 			match ($provider) {
-				'openai' => $this->callOpenAI($apiKey, $model ?: self::DEFAULT_MODELS['openai'], $systemPrompt, $userPrompt),
-				'anthropic' => $this->callAnthropic($apiKey, $model ?: self::DEFAULT_MODELS['anthropic'], $systemPrompt, $userPrompt),
-				'gemini' => $this->callGemini($apiKey, $model ?: self::DEFAULT_MODELS['gemini'], $systemPrompt, $userPrompt),
+				'openai' => $this->callOpenAI($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['openai'], $systemPrompt, $userPrompt),
+				'anthropic' => $this->callAnthropic($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['anthropic'], $systemPrompt, $userPrompt),
+				'gemini' => $this->callGemini($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['gemini'], $systemPrompt, $userPrompt),
 				'ollama' => $this->callOllama(
 					$apiUrl !== '' ? $apiUrl : self::DEFAULT_OLLAMA_URL,
-					$model ?: self::DEFAULT_MODELS['ollama'],
+					$model !== '' ? $model : self::DEFAULT_MODELS['ollama'],
 					$systemPrompt,
 					$userPrompt,
 				),
@@ -148,7 +169,10 @@ PROMPT;
 			};
 			$this->sendEvent('done', '{}');
 		} catch (\Exception $e) {
-			$this->sendEvent('error', json_encode(['message' => $e->getMessage()]));
+			$errorMsg = json_encode(['message' => $e->getMessage()]);
+			if (is_string($errorMsg)) {
+				$this->sendEvent('error', $errorMsg);
+			}
 		}
 	}
 
@@ -194,9 +218,27 @@ PROMPT;
 					return;
 				}
 				$data = json_decode($json, true);
-				$text = $data['choices'][0]['delta']['content'] ?? '';
-				if ($text !== '') {
-					$this->sendEvent('chunk', json_encode(['text' => $text], JSON_UNESCAPED_UNICODE));
+				if (is_array($data)) {
+					/** @var mixed */
+					$choices = $data['choices'] ?? null;
+					if (is_array($choices) && isset($choices[0])) {
+						/** @var mixed */
+						$choice0 = $choices[0];
+						if (is_array($choice0)) {
+							/** @var mixed */
+							$delta = $choice0['delta'] ?? null;
+							if (is_array($delta)) {
+								$text = $delta['content'] ?? '';
+								$text = is_string($text) ? $text : '';
+								if ($text !== '') {
+									$chunk = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE);
+									if (is_string($chunk)) {
+										$this->sendEvent('chunk', $chunk);
+									}
+								}
+							}
+						}
+					}
 				}
 			},
 		);
@@ -224,10 +266,18 @@ PROMPT;
 					return;
 				}
 				$data = json_decode(substr($line, 6), true);
-				if (($data['type'] ?? '') === 'content_block_delta') {
-					$text = $data['delta']['text'] ?? '';
-					if ($text !== '') {
-						$this->sendEvent('chunk', json_encode(['text' => $text], JSON_UNESCAPED_UNICODE));
+				if (is_array($data) && (($data['type'] ?? '') === 'content_block_delta')) {
+					/** @var mixed */
+					$delta = $data['delta'] ?? null;
+					if (is_array($delta)) {
+						$text = $delta['text'] ?? '';
+						$text = is_string($text) ? $text : '';
+						if ($text !== '') {
+							$chunk = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE);
+							if (is_string($chunk)) {
+								$this->sendEvent('chunk', $chunk);
+							}
+						}
 					}
 				}
 			},
@@ -259,9 +309,35 @@ PROMPT;
 					return;
 				}
 				$data = json_decode(substr($line, 6), true);
-				$text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-				if ($text !== '') {
-					$this->sendEvent('chunk', json_encode(['text' => $text], JSON_UNESCAPED_UNICODE));
+				if (is_array($data)) {
+					/** @var mixed */
+					$candidates = $data['candidates'] ?? null;
+					if (is_array($candidates) && isset($candidates[0])) {
+						/** @var mixed */
+						$candidate0 = $candidates[0];
+						if (is_array($candidate0)) {
+							/** @var mixed */
+							$contentNode = $candidate0['content'] ?? null;
+							if (is_array($contentNode)) {
+								/** @var mixed */
+								$parts = $contentNode['parts'] ?? null;
+								if (is_array($parts) && isset($parts[0])) {
+									/** @var mixed */
+									$part0 = $parts[0];
+									if (is_array($part0)) {
+										$text = $part0['text'] ?? '';
+										$text = is_string($text) ? $text : '';
+										if ($text !== '') {
+											$chunk = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE);
+											if (is_string($chunk)) {
+												$this->sendEvent('chunk', $chunk);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
 				}
 			},
 		);
@@ -286,12 +362,22 @@ PROMPT;
 					return;
 				}
 				if (isset($data['error'])) {
-					$msg = is_string($data['error']) ? $data['error'] : ($data['error']['message'] ?? 'Unknown error');
+					$errorObj = $data['error'];
+					$msg = is_string($errorObj) ? $errorObj : (is_array($errorObj) ? ($errorObj['message'] ?? 'Unknown error') : 'Unknown error');
+					$msg = is_string($msg) ? $msg : 'Unknown error';
 					throw new \RuntimeException('Ollama: ' . $msg);
 				}
-				$text = $data['message']['content'] ?? '';
-				if ($text !== '') {
-					$this->sendEvent('chunk', json_encode(['text' => $text], JSON_UNESCAPED_UNICODE));
+				/** @var mixed */
+				$messageNode = $data['message'] ?? null;
+				if (is_array($messageNode)) {
+					$text = $messageNode['content'] ?? '';
+					$text = is_string($text) ? $text : '';
+					if ($text !== '') {
+						$chunk = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE);
+						if (is_string($chunk)) {
+							$this->sendEvent('chunk', $chunk);
+						}
+					}
 				}
 			},
 		);
@@ -377,7 +463,7 @@ PROMPT;
 			CURLOPT_RETURNTRANSFER => false,
 			CURLOPT_TIMEOUT => 120,
 			CURLOPT_CONNECTTIMEOUT => 10,
-			CURLOPT_WRITEFUNCTION => function ($ch, $data) use (&$buffer, &$rawResponse, $lineHandler, &$error) {
+			CURLOPT_WRITEFUNCTION => function ($ch, string $data) use (&$buffer, &$rawResponse, $lineHandler, &$error): int {
 				if (strlen($rawResponse) < 4096) {
 					$rawResponse .= $data;
 				}
@@ -419,8 +505,14 @@ PROMPT;
 		if ($httpCode >= 400) {
 			$errorData = json_decode($rawResponse, true);
 			if (is_array($errorData)) {
-				$msg = $errorData['error']['message'] ?? $errorData['error'] ?? 'HTTP ' . $httpCode;
-				throw new \RuntimeException('API error: ' . (is_string($msg) ? $msg : json_encode($msg)));
+				/** @var mixed */
+				$errorObj = $errorData['error'] ?? null;
+				if (is_array($errorObj)) {
+					$msg = $errorObj['message'] ?? $errorObj;
+				} else {
+					$msg = $errorObj ?? 'HTTP ' . $httpCode;
+				}
+				throw new \RuntimeException('API error: ' . (is_string($msg) ? $msg : (string) json_encode($msg)));
 			}
 			throw new \RuntimeException('API error: HTTP ' . $httpCode);
 		}

@@ -1,5 +1,5 @@
 <?php
-/** @var FreshRSS_Extension $this */
+/** @var Minz_Extension $this */
 $provider = FreshRSS_Context::$user_conf->ai_summary_provider ?? '';
 $apiKey = FreshRSS_Context::$user_conf->ai_summary_api_key ?? '';
 $model = FreshRSS_Context::$user_conf->ai_summary_model ?? '';
@@ -24,7 +24,7 @@ $languages = [
 	'zh-cn' => 'Chinese (中文)',
 ];
 ?>
-<form action="<?= _url('extension', 'configure', 'e', urlencode($this->getName())) ?>" method="post">
+<form action="<?= _url('extension', 'configure', 'e', $this->getName()) ?>" method="post">
 	<input type="hidden" name="_csrf" value="<?= FreshRSS_Auth::csrfToken() ?>" />
 
 	<div class="form-group">

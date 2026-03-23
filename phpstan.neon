@@ -1,0 +1,11 @@
+parameters:
+	level: 10
+	paths:
+		- Controllers/
+		- extension.php
+		- configure.phtml
+	excludePaths:
+		analyseAndScan:
+			- vendor/
+	scanFiles:
+		- tests/stubs/FreshRSS.php
