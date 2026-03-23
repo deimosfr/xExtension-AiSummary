@@ -25,6 +25,25 @@ jobs:
           find . -name '*.php' -not -path './vendor/*' -not -path './tests/*' -print0 | \
             xargs -0 -n1 php -l
 
+  phpstan:
+    name: PHPStan Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, mbstring, json
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=512M
+
   test:
     name: Tests (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
@@ -51,7 +70,7 @@ jobs:
   release:
     name: Create Release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [lint, test]
+    needs: [lint, phpstan, test]
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -18,17 +18,17 @@ final class AiSummaryExtension extends Minz_Extension {
 		$this->registerTranslates();
 
 		if (Minz_Request::isPost()) {
-			if (Minz_Request::param('_csrf') !== FreshRSS_Auth::csrfToken()) {
+			if (Minz_Request::paramString('_csrf') !== FreshRSS_Auth::csrfToken()) {
 				Minz_Error::error(403);
 			}
-
-			FreshRSS_Context::$user_conf->ai_summary_provider = Minz_Request::param('ai_summary_provider', 'openai');
-			FreshRSS_Context::$user_conf->ai_summary_api_key = Minz_Request::param('ai_summary_api_key', '');
-			FreshRSS_Context::$user_conf->ai_summary_model = Minz_Request::param('ai_summary_model', '');
-			FreshRSS_Context::$user_conf->ai_summary_api_url = Minz_Request::param('ai_summary_api_url', '');
-			FreshRSS_Context::$user_conf->ai_summary_prompt = Minz_Request::param('ai_summary_prompt', '');
-			FreshRSS_Context::$user_conf->ai_summary_language = Minz_Request::param('ai_summary_language', '');
-			FreshRSS_Context::$user_conf->save();
+			$user_conf = FreshRSS_Context::userConf();
+			$user_conf->_attribute('ai_summary_provider', Minz_Request::paramString('ai_summary_provider') ?: 'openai');
+			$user_conf->_attribute('ai_summary_api_key', Minz_Request::paramString('ai_summary_api_key'));
+			$user_conf->_attribute('ai_summary_model', Minz_Request::paramString('ai_summary_model'));
+			$user_conf->_attribute('ai_summary_api_url', Minz_Request::paramString('ai_summary_api_url'));
+			$user_conf->_attribute('ai_summary_prompt', Minz_Request::paramString('ai_summary_prompt'));
+			$user_conf->_attribute('ai_summary_language', Minz_Request::paramString('ai_summary_language'));
+			$user_conf->save();
 		}
 	}
 
