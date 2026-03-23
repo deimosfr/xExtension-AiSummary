@@ -39,15 +39,9 @@
 - **14 languages** — cs, de, en, es, fr, it, ja, ko, nl, pl, pt-br, ru, tr, zh-cn.
 - **Secure** — API keys stay server-side. All requests are proxied through PHP.
 
-## Screenshots
+## Demonstration
 
-Here is the configuration part:
-
-![screenshots/config.png](screenshots/config.png)
-
-Clicking on "Ai Summarize" button will start generating the summary:
-
-![screenshots/generating.png](screenshots/generating.png)
+![assets/demo.gif](assets/demo.gif)
 
 ## Installation
 
