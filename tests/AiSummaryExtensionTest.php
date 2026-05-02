@@ -86,6 +86,7 @@ final class AiSummaryExtensionTest extends TestCase {
 		Minz_Request::setParam('ai_summary_model', 'claude-sonnet-4-6');
 		Minz_Request::setParam('ai_summary_api_url', '');
 		Minz_Request::setParam('ai_summary_prompt', 'Custom prompt here');
+		Minz_Request::setParam('ai_summary_timeout', '45');
 
 		$this->extension->handleConfigureAction();
 
@@ -93,5 +94,23 @@ final class AiSummaryExtensionTest extends TestCase {
 		self::assertSame('sk-ant-test', FreshRSS_Context::$user_conf->ai_summary_api_key);
 		self::assertSame('claude-sonnet-4-6', FreshRSS_Context::$user_conf->ai_summary_model);
 		self::assertSame('Custom prompt here', FreshRSS_Context::$user_conf->ai_summary_prompt);
+		self::assertSame(45, FreshRSS_Context::$user_conf->ai_summary_timeout);
+	}
+
+	public function testHandleConfigureActionCoercesInvalidTimeout(): void {
+		Minz_Request::setParam('_method', 'POST');
+		Minz_Request::setParam('_csrf', 'test-csrf-token');
+		Minz_Request::setParam('ai_summary_provider', 'openai');
+		Minz_Request::setParam('ai_summary_timeout', '0');
+		$this->extension->handleConfigureAction();
+		self::assertSame(30, FreshRSS_Context::$user_conf->ai_summary_timeout);
+
+		Minz_Request::setParam('ai_summary_timeout', '999');
+		$this->extension->handleConfigureAction();
+		self::assertSame(30, FreshRSS_Context::$user_conf->ai_summary_timeout);
+
+		Minz_Request::setParam('ai_summary_timeout', '');
+		$this->extension->handleConfigureAction();
+		self::assertSame(30, FreshRSS_Context::$user_conf->ai_summary_timeout);
 	}
 }

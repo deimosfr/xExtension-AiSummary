@@ -19,6 +19,8 @@ return [
 		'language' => '摘要语言',
 		'language_auto' => '自动（使用 FreshRSS 语言）',
 		'language_help' => '生成摘要使用的语言。自动使用您的 FreshRSS 界面语言。',
+		'timeout' => '请求超时（秒）',
+		'timeout_help' => '等待 AI 提供商响应的最长秒数。默认值：30。范围：1-300。',
 		'save' => '保存',
 	],
 ];

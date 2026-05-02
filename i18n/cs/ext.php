@@ -19,6 +19,8 @@ return [
 		'language' => 'Jazyk shrnutí',
 		'language_auto' => 'Automaticky (použít jazyk FreshRSS)',
 		'language_help' => 'Jazyk generovaných shrnutí. Automaticky používá jazyk rozhraní FreshRSS.',
+		'timeout' => 'Časový limit požadavku (sekundy)',
+		'timeout_help' => 'Maximální počet sekund čekání na odpověď poskytovatele AI. Výchozí: 30. Rozsah: 1-300.',
 		'save' => 'Uložit',
 	],
 ];

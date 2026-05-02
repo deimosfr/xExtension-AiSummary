@@ -19,6 +19,8 @@ return [
 		'language' => 'Summary Language',
 		'language_auto' => 'Auto (use FreshRSS language)',
 		'language_help' => 'Language used for generated summaries. Auto uses your FreshRSS interface language.',
+		'timeout' => 'Request Timeout (seconds)',
+		'timeout_help' => 'Maximum seconds to wait for the AI provider to respond. Default: 30. Range: 1-300.',
 		'save' => 'Save',
 	],
 ];

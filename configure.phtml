@@ -6,6 +6,11 @@ $model = FreshRSS_Context::$user_conf->ai_summary_model ?? '';
 $apiUrl = FreshRSS_Context::$user_conf->ai_summary_api_url ?? '';
 $prompt = FreshRSS_Context::$user_conf->ai_summary_prompt ?? '';
 $language = FreshRSS_Context::$user_conf->ai_summary_language ?? '';
+$timeout = FreshRSS_Context::$user_conf->ai_summary_timeout ?? AiSummaryExtension::TIMEOUT_DEFAULT;
+if ($timeout < AiSummaryExtension::TIMEOUT_MIN
+	|| $timeout > AiSummaryExtension::TIMEOUT_MAX) {
+	$timeout = AiSummaryExtension::TIMEOUT_DEFAULT;
+}
 $languages = [
 	'' => _t('ext.ai_summary.language_auto'),
 	'en' => 'English',
@@ -89,6 +94,17 @@ $languages = [
 				<?php endforeach; ?>
 			</select>
 			<p class="help"><?= _t('ext.ai_summary.language_help') ?></p>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="group-name" for="ai_summary_timeout"><?= _t('ext.ai_summary.timeout') ?></label>
+		<div class="group-controls">
+			<input type="number" name="ai_summary_timeout" id="ai_summary_timeout"
+				min="<?= AiSummaryExtension::TIMEOUT_MIN ?>"
+				max="<?= AiSummaryExtension::TIMEOUT_MAX ?>"
+				value="<?= (int) $timeout ?>" />
+			<p class="help"><?= _t('ext.ai_summary.timeout_help') ?></p>
 		</div>
 	</div>
 

@@ -19,6 +19,8 @@ return [
 		'language' => 'Zusammenfassungssprache',
 		'language_auto' => 'Auto (FreshRSS-Sprache verwenden)',
 		'language_help' => 'Sprache für die generierten Zusammenfassungen. Auto verwendet Ihre FreshRSS-Oberflächensprache.',
+		'timeout' => 'Anfrage-Timeout (Sekunden)',
+		'timeout_help' => 'Maximale Sekunden, die auf eine Antwort des KI-Anbieters gewartet wird. Standard: 30. Bereich: 1-300.',
 		'save' => 'Speichern',
 	],
 ];

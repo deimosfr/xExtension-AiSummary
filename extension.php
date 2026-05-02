@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 final class AiSummaryExtension extends Minz_Extension {
 
+	public const TIMEOUT_MIN = 1;
+	public const TIMEOUT_MAX = 300;
+	public const TIMEOUT_DEFAULT = 30;
+
 	#[\Override]
 	public function init(): void {
 		Minz_View::appendStyle($this->getFileUrl('style.css', 'css'));
@@ -28,6 +32,11 @@ final class AiSummaryExtension extends Minz_Extension {
 			$user_conf->_attribute('ai_summary_api_url', Minz_Request::paramString('ai_summary_api_url'));
 			$user_conf->_attribute('ai_summary_prompt', Minz_Request::paramString('ai_summary_prompt'));
 			$user_conf->_attribute('ai_summary_language', Minz_Request::paramString('ai_summary_language'));
+			$timeout = Minz_Request::paramInt('ai_summary_timeout');
+			if ($timeout < self::TIMEOUT_MIN || $timeout > self::TIMEOUT_MAX) {
+				$timeout = self::TIMEOUT_DEFAULT;
+			}
+			$user_conf->_attribute('ai_summary_timeout', $timeout);
 			$user_conf->save();
 		}
 	}

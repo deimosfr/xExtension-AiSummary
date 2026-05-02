@@ -19,6 +19,8 @@ return [
 		'language' => '요약 언어',
 		'language_auto' => '자동 (FreshRSS 언어 사용)',
 		'language_help' => '생성된 요약에 사용되는 언어. 자동은 FreshRSS 인터페이스 언어를 사용합니다.',
+		'timeout' => '요청 시간 초과(초)',
+		'timeout_help' => 'AI 제공자의 응답을 기다리는 최대 시간(초). 기본값: 30. 범위: 1-300.',
 		'save' => '저장',
 	],
 ];

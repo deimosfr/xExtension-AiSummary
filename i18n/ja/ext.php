@@ -19,6 +19,8 @@ return [
 		'language' => '要約の言語',
 		'language_auto' => '自動（FreshRSSの言語を使用）',
 		'language_help' => '生成される要約の言語。自動の場合、FreshRSSのインターフェース言語を使用します。',
+		'timeout' => 'リクエストタイムアウト（秒）',
+		'timeout_help' => 'AIプロバイダーの応答を待つ最大秒数。デフォルト：30。範囲：1-300。',
 		'save' => '保存',
 	],
 ];

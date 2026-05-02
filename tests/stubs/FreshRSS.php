@@ -84,6 +84,7 @@ class Minz_Request {
  * @property string $ai_summary_api_url
  * @property string $ai_summary_prompt
  * @property string $ai_summary_language
+ * @property int $ai_summary_timeout
  * @property string $language
  */
 class FreshRSS_UserConfiguration {
