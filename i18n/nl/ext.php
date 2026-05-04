@@ -19,6 +19,8 @@ return [
 		'language' => 'Samenvattingstaal',
 		'language_auto' => 'Auto (FreshRSS-taal gebruiken)',
 		'language_help' => 'Taal voor gegenereerde samenvattingen. Auto gebruikt uw FreshRSS-interfacetaal.',
+		'timeout' => 'Verzoek-time-out (seconden)',
+		'timeout_help' => 'Maximaal aantal seconden om te wachten op een antwoord van de AI-provider. Standaard: 30. Bereik: 1-300.',
 		'save' => 'Opslaan',
 	],
 ];

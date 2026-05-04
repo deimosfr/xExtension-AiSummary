@@ -19,6 +19,8 @@ return [
 		'language' => 'Özet dili',
 		'language_auto' => 'Otomatik (FreshRSS dilini kullan)',
 		'language_help' => 'Oluşturulan özetler için kullanılan dil. Otomatik, FreshRSS arayüz dilinizi kullanır.',
+		'timeout' => 'İstek Zaman Aşımı (saniye)',
+		'timeout_help' => 'AI sağlayıcısından yanıt beklenecek maksimum saniye. Varsayılan: 30. Aralık: 1-300.',
 		'save' => 'Kaydet',
 	],
 ];

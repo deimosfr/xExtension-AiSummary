@@ -2,7 +2,7 @@
 	"name": "AI Summary",
 	"author": "Pierre Mavro",
 	"description": "Summarize articles using AI providers (Gemini, Claude, ChatGPT, Ollama)",
-	"version": "1.0.2",
+	"version": "1.1.0",
 	"entrypoint": "AiSummary",
 	"type": "user"
 }

@@ -13,6 +13,10 @@ final class FreshExtension_AiSummary_Controller extends Minz_ActionController {
 
 	private const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
 
+	private const CONNECT_TIMEOUT = 10;
+
+	private int $requestTimeout = AiSummaryExtension::TIMEOUT_DEFAULT;
+
 	private const MAX_CONTENT_LENGTH = 12000;
 
 	private const MIN_CONTENT_LENGTH = 200;
@@ -95,6 +99,11 @@ PROMPT;
 		/** @var mixed */
 		$customPrompt = $user_conf->ai_summary_prompt;
 		$customPrompt = is_string($customPrompt) ? $customPrompt : '';
+		/** @var mixed */
+		$timeout = $user_conf->ai_summary_timeout;
+		$timeout = is_int($timeout) && $timeout >= AiSummaryExtension::TIMEOUT_MIN && $timeout <= AiSummaryExtension::TIMEOUT_MAX
+			? $timeout
+			: AiSummaryExtension::TIMEOUT_DEFAULT;
 
 		if ($provider !== 'ollama' && $apiKey === '') {
 			header('Content-Type: application/json; charset=UTF-8');
@@ -153,6 +162,8 @@ PROMPT;
 		if (is_string($statusMsg)) {
 			$this->sendEvent('status', $statusMsg);
 		}
+
+		$this->requestTimeout = $timeout;
 
 		try {
 			match ($provider) {
@@ -461,8 +472,8 @@ PROMPT;
 			CURLOPT_POSTFIELDS => json_encode($payload, JSON_THROW_ON_ERROR),
 			CURLOPT_HTTPHEADER => $headers,
 			CURLOPT_RETURNTRANSFER => false,
-			CURLOPT_TIMEOUT => 120,
-			CURLOPT_CONNECTTIMEOUT => 10,
+			CURLOPT_TIMEOUT => $this->requestTimeout,
+			CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
 			CURLOPT_WRITEFUNCTION => function ($ch, string $data) use (&$buffer, &$rawResponse, $lineHandler, &$error): int {
 				if (strlen($rawResponse) < 4096) {
 					$rawResponse .= $data;

@@ -19,6 +19,8 @@ return [
 		'language' => 'Idioma del resumen',
 		'language_auto' => 'Auto (usar idioma de FreshRSS)',
 		'language_help' => 'Idioma utilizado para los resúmenes generados. Auto usa el idioma de su interfaz FreshRSS.',
+		'timeout' => 'Tiempo de espera de solicitud (segundos)',
+		'timeout_help' => 'Segundos máximos para esperar la respuesta del proveedor de IA. Predeterminado: 30. Rango: 1-300.',
 		'save' => 'Guardar',
 	],
 ];

@@ -19,6 +19,8 @@ return [
 		'language' => 'Język podsumowania',
 		'language_auto' => 'Auto (użyj języka FreshRSS)',
 		'language_help' => 'Język generowanych podsumowań. Auto używa języka interfejsu FreshRSS.',
+		'timeout' => 'Limit czasu żądania (sekundy)',
+		'timeout_help' => 'Maksymalna liczba sekund oczekiwania na odpowiedź dostawcy AI. Domyślnie: 30. Zakres: 1-300.',
 		'save' => 'Zapisz',
 	],
 ];

@@ -23,6 +23,8 @@ final class I18nTest extends TestCase {
 		'language',
 		'language_auto',
 		'language_help',
+		'timeout',
+		'timeout_help',
 		'save',
 	];
 
