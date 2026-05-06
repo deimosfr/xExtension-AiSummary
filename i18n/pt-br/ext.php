@@ -10,7 +10,7 @@ return [
 		'api_key_help' => 'Não necessária para Ollama.',
 		'model' => 'Modelo',
 		'model_placeholder' => 'Deixe vazio para o padrão',
-		'model_help' => 'Padrões: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2',
+		'model_help' => 'Padrões: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2, Perplexity: sonar',
 		'api_url' => 'URL da API',
 		'api_url_help' => 'Necessária apenas para Ollama. Padrão: http://localhost:11434',
 		'prompt' => 'Prompt personalizado',

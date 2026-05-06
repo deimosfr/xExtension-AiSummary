@@ -10,7 +10,7 @@ return [
 		'api_key_help' => 'Ollama에는 필요하지 않습니다.',
 		'model' => '모델',
 		'model_placeholder' => '기본값을 사용하려면 비워두세요',
-		'model_help' => '기본값: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2',
+		'model_help' => '기본값: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2, Perplexity: sonar',
 		'api_url' => 'API URL',
 		'api_url_help' => 'Ollama에만 필요합니다. 기본값: http://localhost:11434',
 		'prompt' => '사용자 정의 프롬프트',

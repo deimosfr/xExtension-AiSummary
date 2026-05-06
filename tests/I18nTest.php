@@ -113,6 +113,7 @@ final class I18nTest extends TestCase {
 		self::assertStringContainsString('claude-sonnet-4-6', $help, "Language '{$lang}' model_help missing Claude default");
 		self::assertStringContainsString('gemini-2.5-flash', $help, "Language '{$lang}' model_help missing Gemini default");
 		self::assertStringContainsString('llama3.2', $help, "Language '{$lang}' model_help missing Ollama default");
+		self::assertStringContainsString('sonar', $help, "Language '{$lang}' model_help missing Perplexity default");
 	}
 
 	public function testEnglishStringsMatchRequiredKeys(): void {

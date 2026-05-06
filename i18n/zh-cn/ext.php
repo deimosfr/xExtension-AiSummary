@@ -10,7 +10,7 @@ return [
 		'api_key_help' => 'Ollama 不需要。',
 		'model' => '模型',
 		'model_placeholder' => '留空使用默认值',
-		'model_help' => '默认值：OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2',
+		'model_help' => '默认值：OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2, Perplexity: sonar',
 		'api_url' => 'API 地址',
 		'api_url_help' => '仅 Ollama 需要。默认：http://localhost:11434',
 		'prompt' => '自定义提示词',

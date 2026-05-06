@@ -10,7 +10,7 @@ return [
 		'api_key_help' => 'Niet vereist voor Ollama.',
 		'model' => 'Model',
 		'model_placeholder' => 'Leeg laten voor standaard',
-		'model_help' => 'Standaard: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2',
+		'model_help' => 'Standaard: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2, Perplexity: sonar',
 		'api_url' => 'API-URL',
 		'api_url_help' => 'Alleen vereist voor Ollama. Standaard: http://localhost:11434',
 		'prompt' => 'Aangepaste prompt',

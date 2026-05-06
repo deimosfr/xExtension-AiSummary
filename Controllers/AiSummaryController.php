@@ -9,6 +9,7 @@ final class FreshExtension_AiSummary_Controller extends Minz_ActionController {
 		'anthropic' => 'claude-sonnet-4-6',
 		'gemini' => 'gemini-2.5-flash',
 		'ollama' => 'llama3.2',
+		'perplexity' => 'sonar',
 	];
 
 	private const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
@@ -176,6 +177,7 @@ PROMPT;
 					$systemPrompt,
 					$userPrompt,
 				),
+				'perplexity' => $this->callPerplexity($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['perplexity'], $systemPrompt, $userPrompt),
 				default => throw new \RuntimeException('Unknown provider: ' . $provider),
 			};
 			$this->sendEvent('done', '{}');
@@ -220,39 +222,55 @@ PROMPT;
 			'https://api.openai.com/v1/chat/completions',
 			['model' => $model, 'messages' => $messages, 'max_tokens' => 1024, 'stream' => true],
 			['Authorization: Bearer ' . $apiKey, 'Content-Type: application/json'],
-			function (string $line): void {
-				if (!str_starts_with($line, 'data: ')) {
-					return;
-				}
-				$json = substr($line, 6);
-				if (trim($json) === '[DONE]') {
-					return;
-				}
-				$data = json_decode($json, true);
-				if (is_array($data)) {
-					/** @var mixed */
-					$choices = $data['choices'] ?? null;
-					if (is_array($choices) && isset($choices[0])) {
-						/** @var mixed */
-						$choice0 = $choices[0];
-						if (is_array($choice0)) {
-							/** @var mixed */
-							$delta = $choice0['delta'] ?? null;
-							if (is_array($delta)) {
-								$text = $delta['content'] ?? '';
-								$text = is_string($text) ? $text : '';
-								if ($text !== '') {
-									$chunk = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE);
-									if (is_string($chunk)) {
-										$this->sendEvent('chunk', $chunk);
-									}
-								}
-							}
-						}
-					}
-				}
-			},
+			fn (string $line) => $this->parseOpenAIStreamLine($line),
 		);
+	}
+
+	private function callPerplexity(string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+		$messages = [];
+		if ($systemPrompt !== '') {
+			$messages[] = ['role' => 'system', 'content' => $systemPrompt];
+		}
+		$messages[] = ['role' => 'user', 'content' => $userPrompt];
+
+		$this->curlStreamRequest(
+			'https://api.perplexity.ai/chat/completions',
+			['model' => $model, 'messages' => $messages, 'max_tokens' => 1024, 'stream' => true],
+			['Authorization: Bearer ' . $apiKey, 'Content-Type: application/json'],
+			fn (string $line) => $this->parseOpenAIStreamLine($line),
+		);
+	}
+
+	private function parseOpenAIStreamLine(string $line): void {
+		if (!str_starts_with($line, 'data: ')) {
+			return;
+		}
+		$json = substr($line, 6);
+		if (trim($json) === '[DONE]') {
+			return;
+		}
+		$data = json_decode($json, true);
+		if (!is_array($data)) {
+			return;
+		}
+		/** @var mixed */
+		$choices = $data['choices'] ?? null;
+		if (!is_array($choices) || !isset($choices[0]) || !is_array($choices[0])) {
+			return;
+		}
+		/** @var mixed */
+		$delta = $choices[0]['delta'] ?? null;
+		if (!is_array($delta)) {
+			return;
+		}
+		$text = $delta['content'] ?? '';
+		if (!is_string($text) || $text === '') {
+			return;
+		}
+		$chunk = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE);
+		if (is_string($chunk)) {
+			$this->sendEvent('chunk', $chunk);
+		}
 	}
 
 	private function callAnthropic(string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {

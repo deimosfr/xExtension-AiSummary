@@ -10,7 +10,7 @@ return [
 		'api_key_help' => 'Není vyžadováno pro Ollama.',
 		'model' => 'Model',
 		'model_placeholder' => 'Ponechte prázdné pro výchozí',
-		'model_help' => 'Výchozí: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2',
+		'model_help' => 'Výchozí: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2, Perplexity: sonar',
 		'api_url' => 'URL API',
 		'api_url_help' => 'Vyžadováno pouze pro Ollama. Výchozí: http://localhost:11434',
 		'prompt' => 'Vlastní prompt',

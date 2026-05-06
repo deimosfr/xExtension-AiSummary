@@ -27,6 +27,7 @@ final class AiSummaryControllerTest extends TestCase {
 		self::assertArrayHasKey('anthropic', $models);
 		self::assertArrayHasKey('gemini', $models);
 		self::assertArrayHasKey('ollama', $models);
+		self::assertArrayHasKey('perplexity', $models);
 	}
 
 	public function testDefaultOllamaUrl(): void {

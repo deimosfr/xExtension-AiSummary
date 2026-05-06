@@ -10,7 +10,7 @@ return [
 		'api_key_help' => 'Non richiesta per Ollama.',
 		'model' => 'Modello',
 		'model_placeholder' => 'Lasciare vuoto per il predefinito',
-		'model_help' => 'Predefiniti: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2',
+		'model_help' => 'Predefiniti: OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2, Perplexity: sonar',
 		'api_url' => 'URL API',
 		'api_url_help' => 'Richiesto solo per Ollama. Predefinito: http://localhost:11434',
 		'prompt' => 'Prompt personalizzato',

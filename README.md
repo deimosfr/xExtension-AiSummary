@@ -22,7 +22,7 @@
 - **One-click summaries** — A "Summarize" button appears in every article. Click it to get an AI-generated summary streamed in real time below the title.
 - **Real-time streaming** — Summaries are delivered via Server-Sent Events (SSE), so you see text appear as the AI generates it, with a live typing cursor.
 - **Auto-fetch full articles** — When the RSS feed only contains a short excerpt, the extension automatically fetches and parses the full article from the original URL.
-- **4 AI providers** — Choose the one that fits your setup:
+- **5 AI providers** — Choose the one that fits your setup:
 
   | Provider | Default Model | API Key Required |
   |----------|--------------|:----------------:|
@@ -30,6 +30,7 @@
   | Anthropic (Claude) | `claude-sonnet-4-6` | Yes |
   | Google (Gemini) | `gemini-2.5-flash` | Yes |
   | Ollama | `llama3.2` | No |
+  | [Perplexity AI](https://docs.perplexity.ai/) | `sonar` | Yes |
 
 - **Custom prompts** — Override the default summarization prompt. Use `{content}`, `{title}`, and `{language}` placeholders in your template.
 - **Language override** — Choose the summary output language independently of your FreshRSS UI language.
@@ -68,7 +69,7 @@ git clone https://github.com/deimosfr/xExtension-AiSummary.git
 
 | Setting | Description |
 |---------|-------------|
-| **AI Provider** | Select OpenAI, Anthropic, Gemini, or Ollama. |
+| **AI Provider** | Select OpenAI, Anthropic, Gemini, Ollama, or Perplexity. |
 | **API Key** | Your provider's API key. Not required for Ollama. |
 | **Model** | Leave empty to use the provider's default (see table above), or specify any model your provider supports. |
 | **API URL** | Only for Ollama. Defaults to `http://localhost:11434`. |
