@@ -4,14 +4,24 @@ declare(strict_types=1);
 
 final class FreshExtension_AiSummary_Controller extends Minz_ActionController {
 
+	private const PROVIDER_OPENAI = 'openai';
+	private const PROVIDER_ANTHROPIC = 'anthropic';
+	private const PROVIDER_GEMINI = 'gemini';
+	private const PROVIDER_OLLAMA = 'ollama';
+
 	private const DEFAULT_MODELS = [
-		'openai' => 'gpt-4o-mini',
-		'anthropic' => 'claude-sonnet-4-6',
-		'gemini' => 'gemini-2.5-flash',
-		'ollama' => 'llama3.2',
+		self::PROVIDER_OPENAI => 'gpt-4o-mini',
+		self::PROVIDER_ANTHROPIC => 'claude-sonnet-4-6',
+		self::PROVIDER_GEMINI  => 'gemini-2.5-flash',
+		self::PROVIDER_OLLAMA => 'llama3.2',
 	];
 
-	private const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
+	private const DEFAULT_PROVIDER_URL = [
+		self::PROVIDER_OPENAI => 'https://api.openai.com',
+		self::PROVIDER_ANTHROPIC => 'https://api.anthropic.com',
+		self::PROVIDER_GEMINI => 'https://generativelanguage.googleapis.com',
+		self::PROVIDER_OLLAMA => 'http://localhost:11434',
+	];
 
 	private const CONNECT_TIMEOUT = 10;
 
@@ -166,18 +176,25 @@ PROMPT;
 		$this->requestTimeout = $timeout;
 
 		try {
-			match ($provider) {
-				'openai' => $this->callOpenAI($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['openai'], $systemPrompt, $userPrompt),
-				'anthropic' => $this->callAnthropic($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['anthropic'], $systemPrompt, $userPrompt),
-				'gemini' => $this->callGemini($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['gemini'], $systemPrompt, $userPrompt),
-				'ollama' => $this->callOllama(
-					$apiUrl !== '' ? $apiUrl : self::DEFAULT_OLLAMA_URL,
-					$model !== '' ? $model : self::DEFAULT_MODELS['ollama'],
-					$systemPrompt,
-					$userPrompt,
-				),
-				default => throw new \RuntimeException('Unknown provider: ' . $provider),
-			};
+			$allowedProviders = array_keys(self::DEFAULT_PROVIDER_URL);
+			if (!in_array($provider, $allowedProviders, true)) {
+					throw new \RuntimeException('Unknown provider: ' . $provider);
+			}
+
+			$providerFunc = 'call' . ucfirst($provider);
+
+			if (! method_exists($this, $providerFunc)) {
+				throw new \RuntimeException('Provider not implemented: ' . $provider);
+			}
+
+			$this->{$providerFunc}(
+				$apiUrl !== '' ? $apiUrl : self::DEFAULT_PROVIDER_URL[$provider],
+				$apiKey,
+				$model !== '' ? $model : self::DEFAULT_MODELS[$provider],
+				$systemPrompt,
+				$userPrompt,
+			);
+
 			$this->sendEvent('done', '{}');
 		} catch (\Exception $e) {
 			$errorMsg = json_encode(['message' => $e->getMessage()]);
@@ -209,7 +226,8 @@ PROMPT;
 		echo "event: {$event}\ndata: {$data}\n\n";
 	}
 
-	private function callOpenAI(string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+	private function callOpenai(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+		$url = rtrim($apiUrl, '/') . '/v1/chat/completions';
 		$messages = [];
 		if ($systemPrompt !== '') {
 			$messages[] = ['role' => 'system', 'content' => $systemPrompt];
@@ -217,7 +235,7 @@ PROMPT;
 		$messages[] = ['role' => 'user', 'content' => $userPrompt];
 
 		$this->curlStreamRequest(
-			'https://api.openai.com/v1/chat/completions',
+			$url,
 			['model' => $model, 'messages' => $messages, 'max_tokens' => 1024, 'stream' => true],
 			['Authorization: Bearer ' . $apiKey, 'Content-Type: application/json'],
 			function (string $line): void {
@@ -255,7 +273,9 @@ PROMPT;
 		);
 	}
 
-	private function callAnthropic(string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+	private function callAnthropic(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+		$url = rtrim($apiUrl, '/') . '/v1/messages';
+
 		$payload = [
 			'model' => $model,
 			'max_tokens' => 1024,
@@ -269,7 +289,7 @@ PROMPT;
 		}
 
 		$this->curlStreamRequest(
-			'https://api.anthropic.com/v1/messages',
+			$url,
 			$payload,
 			['x-api-key: ' . $apiKey, 'anthropic-version: 2023-06-01', 'Content-Type: application/json'],
 			function (string $line): void {
@@ -295,8 +315,8 @@ PROMPT;
 		);
 	}
 
-	private function callGemini(string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
-		$url = 'https://generativelanguage.googleapis.com/v1beta/models/'
+	private function callGemini(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+		$url = rtrim($apiUrl, '/') . '/v1beta/models/'
 			. urlencode($model)
 			. ':streamGenerateContent?alt=sse&key=' . urlencode($apiKey);
 
@@ -354,7 +374,7 @@ PROMPT;
 		);
 	}
 
-	private function callOllama(string $apiUrl, string $model, string $systemPrompt, string $userPrompt): void {
+	private function callOllama(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
 		$url = rtrim($apiUrl, '/') . '/api/chat';
 
 		$messages = [];

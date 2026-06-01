@@ -30,8 +30,12 @@ final class AiSummaryControllerTest extends TestCase {
 	}
 
 	public function testDefaultOllamaUrl(): void {
-		$ref = new \ReflectionClassConstant(FreshExtension_AiSummary_Controller::class, 'DEFAULT_OLLAMA_URL');
-		self::assertSame('http://localhost:11434', $ref->getValue());
+		$ref = new \ReflectionClassConstant(FreshExtension_AiSummary_Controller::class, 'DEFAULT_PROVIDER_URL');
+		$urls = $ref->getValue();
+		self::assertArrayHasKey('openai', $urls);
+		self::assertArrayHasKey('anthropic', $urls);
+		self::assertArrayHasKey('gemini', $urls);
+		self::assertArrayHasKey('ollama', $urls);
 	}
 
 	public function testMaxContentLengthIsPositive(): void {
@@ -132,24 +136,24 @@ final class AiSummaryControllerTest extends TestCase {
 
 	public function testCallOpenAIMethodSignature(): void {
 		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'callOpenAI');
-		self::assertSame(4, $ref->getNumberOfParameters());
+		self::assertSame(5, $ref->getNumberOfParameters());
 		$params = array_map(fn ($p) => $p->getName(), $ref->getParameters());
-		self::assertSame(['apiKey', 'model', 'systemPrompt', 'userPrompt'], $params);
+		self::assertSame(['apiUrl', 'apiKey', 'model', 'systemPrompt', 'userPrompt'], $params);
 	}
 
 	public function testCallAnthropicMethodSignature(): void {
 		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'callAnthropic');
-		self::assertSame(4, $ref->getNumberOfParameters());
+		self::assertSame(5, $ref->getNumberOfParameters());
 	}
 
 	public function testCallGeminiMethodSignature(): void {
 		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'callGemini');
-		self::assertSame(4, $ref->getNumberOfParameters());
+		self::assertSame(5, $ref->getNumberOfParameters());
 	}
 
 	public function testCallOllamaMethodSignature(): void {
 		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'callOllama');
-		self::assertSame(4, $ref->getNumberOfParameters());
+		self::assertSame(5, $ref->getNumberOfParameters());
 		$params = $ref->getParameters();
 		self::assertSame('apiUrl', $params[0]->getName());
 	}
