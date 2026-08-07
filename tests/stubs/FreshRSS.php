@@ -81,6 +81,7 @@ class Minz_Request {
  * @property string $ai_summary_provider
  * @property string $ai_summary_api_key
  * @property string $ai_summary_model
+ * @property string $ai_summary_openai_api_url
  * @property string $ai_summary_api_url
  * @property string $ai_summary_prompt
  * @property string $ai_summary_language
