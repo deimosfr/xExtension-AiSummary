@@ -10,7 +10,7 @@
 		var wrappers = document.querySelectorAll('.ai-summary-wrapper:not(.ai-summary-initialized)');
 		wrappers.forEach(function (wrapper) {
 			var label = wrapper.dataset.label || 'Summarize';
-			wrapper.innerHTML = '<button type="button" class="ai-summary-btn btn btn-important">' + aiIcon + ' <span class="ai-summary-label"></span></button>'
+			wrapper.innerHTML = '<button type="button" class="ai-summary-btn" aria-expanded="false" title="' + escapeHtml(label) + '">' + aiIcon + ' <span class="ai-summary-label"></span></button>'
 				+ '<div class="ai-summary-content"></div>';
 			// Security fix: use textContent for label
 			var labelSpan = wrapper.querySelector('.ai-summary-label');
@@ -65,12 +65,14 @@
 		// Toggle: if summary is visible, hide it
 		if (contentDiv.classList.contains('ai-summary-visible') && contentDiv.dataset.loaded) {
 			contentDiv.classList.remove('ai-summary-visible');
+			btn.setAttribute('aria-expanded', 'false');
 			return;
 		}
 
 		// If already loaded, just show it
 		if (contentDiv.dataset.loaded) {
 			contentDiv.classList.add('ai-summary-visible');
+			btn.setAttribute('aria-expanded', 'true');
 			return;
 		}
 
@@ -99,6 +101,7 @@
 			el = el.parentElement;
 		}
 		contentDiv.classList.add('ai-summary-visible');
+		btn.setAttribute('aria-expanded', 'true');
 		contentDiv.innerHTML = '<p class="ai-summary-placeholder">Initializing…</p>';
 
 		var formData = new URLSearchParams();
