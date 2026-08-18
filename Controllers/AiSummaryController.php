@@ -11,6 +11,8 @@ final class FreshExtension_AiSummary_Controller extends Minz_ActionController {
 		'ollama' => 'llama3.2',
 	];
 
+	private const DEFAULT_OPENAI_URL = 'https://api.openai.com/v1';
+
 	private const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
 
 	private const CONNECT_TIMEOUT = 10;
@@ -94,8 +96,11 @@ PROMPT;
 		$model = $user_conf->ai_summary_model;
 		$model = is_string($model) ? $model : '';
 		/** @var mixed */
-		$apiUrl = $user_conf->ai_summary_api_url;
-		$apiUrl = is_string($apiUrl) ? $apiUrl : '';
+		$openAiApiUrl = $user_conf->ai_summary_openai_api_url;
+		$openAiApiUrl = is_string($openAiApiUrl) ? $openAiApiUrl : '';
+		/** @var mixed */
+		$ollamaApiUrl = $user_conf->ai_summary_api_url;
+		$ollamaApiUrl = is_string($ollamaApiUrl) ? $ollamaApiUrl : '';
 		/** @var mixed */
 		$customPrompt = $user_conf->ai_summary_prompt;
 		$customPrompt = is_string($customPrompt) ? $customPrompt : '';
@@ -167,11 +172,17 @@ PROMPT;
 
 		try {
 			match ($provider) {
-				'openai' => $this->callOpenAI($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['openai'], $systemPrompt, $userPrompt),
+				'openai' => $this->callOpenAI(
+					$openAiApiUrl !== '' ? $openAiApiUrl : self::DEFAULT_OPENAI_URL,
+					$apiKey,
+					$model !== '' ? $model : self::DEFAULT_MODELS['openai'],
+					$systemPrompt,
+					$userPrompt,
+				),
 				'anthropic' => $this->callAnthropic($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['anthropic'], $systemPrompt, $userPrompt),
 				'gemini' => $this->callGemini($apiKey, $model !== '' ? $model : self::DEFAULT_MODELS['gemini'], $systemPrompt, $userPrompt),
 				'ollama' => $this->callOllama(
-					$apiUrl !== '' ? $apiUrl : self::DEFAULT_OLLAMA_URL,
+					$ollamaApiUrl !== '' ? $ollamaApiUrl : self::DEFAULT_OLLAMA_URL,
 					$model !== '' ? $model : self::DEFAULT_MODELS['ollama'],
 					$systemPrompt,
 					$userPrompt,
@@ -209,7 +220,19 @@ PROMPT;
 		echo "event: {$event}\ndata: {$data}\n\n";
 	}
 
-	private function callOpenAI(string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+	private function buildOpenAiUrl(string $apiUrl): string {
+		$parts = parse_url($apiUrl);
+		if (!is_array($parts)
+			|| !isset($parts['host'], $parts['scheme'])
+			|| !in_array($parts['scheme'], ['http', 'https'], true)) {
+			throw new \RuntimeException('Invalid OpenAI-compatible API URL.');
+		}
+
+		$apiUrl = rtrim($apiUrl, '/');
+		return $apiUrl . (str_ends_with($apiUrl, '/v1') ? '' : '/v1') . '/chat/completions';
+	}
+
+	private function callOpenAI(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
 		$messages = [];
 		if ($systemPrompt !== '') {
 			$messages[] = ['role' => 'system', 'content' => $systemPrompt];
@@ -217,7 +240,7 @@ PROMPT;
 		$messages[] = ['role' => 'user', 'content' => $userPrompt];
 
 		$this->curlStreamRequest(
-			'https://api.openai.com/v1/chat/completions',
+			$this->buildOpenAiUrl($apiUrl),
 			['model' => $model, 'messages' => $messages, 'max_tokens' => 1024, 'stream' => true],
 			['Authorization: Bearer ' . $apiKey, 'Content-Type: application/json'],
 			function (string $line): void {

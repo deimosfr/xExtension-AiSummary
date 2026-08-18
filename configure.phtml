@@ -3,7 +3,8 @@
 $provider = FreshRSS_Context::$user_conf->ai_summary_provider ?? '';
 $apiKey = FreshRSS_Context::$user_conf->ai_summary_api_key ?? '';
 $model = FreshRSS_Context::$user_conf->ai_summary_model ?? '';
-$apiUrl = FreshRSS_Context::$user_conf->ai_summary_api_url ?? '';
+$openAiApiUrl = FreshRSS_Context::$user_conf->ai_summary_openai_api_url ?? '';
+$ollamaApiUrl = FreshRSS_Context::$user_conf->ai_summary_api_url ?? '';
 $prompt = FreshRSS_Context::$user_conf->ai_summary_prompt ?? '';
 $language = FreshRSS_Context::$user_conf->ai_summary_language ?? '';
 $timeout = FreshRSS_Context::$user_conf->ai_summary_timeout ?? AiSummaryExtension::TIMEOUT_DEFAULT;
@@ -65,10 +66,19 @@ $languages = [
 	</div>
 
 	<div class="form-group">
-		<label class="group-name" for="ai_summary_api_url"><?= _t('ext.ai_summary.api_url') ?></label>
+		<label class="group-name" for="ai_summary_openai_api_url"><?= _t('ext.ai_summary.api_url') ?> (OpenAI-compatible)</label>
+		<div class="group-controls">
+			<input type="url" name="ai_summary_openai_api_url" id="ai_summary_openai_api_url"
+				value="<?= htmlspecialchars($openAiApiUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+				placeholder="https://api.openai.com/v1" />
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="group-name" for="ai_summary_api_url"><?= _t('ext.ai_summary.api_url') ?> (Ollama)</label>
 		<div class="group-controls">
 			<input type="url" name="ai_summary_api_url" id="ai_summary_api_url"
-				value="<?= htmlspecialchars($apiUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+				value="<?= htmlspecialchars($ollamaApiUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
 				placeholder="http://localhost:11434" />
 			<p class="help"><?= _t('ext.ai_summary.api_url_help') ?></p>
 		</div>

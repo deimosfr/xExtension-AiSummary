@@ -84,6 +84,7 @@ final class AiSummaryExtensionTest extends TestCase {
 		Minz_Request::setParam('ai_summary_provider', 'anthropic');
 		Minz_Request::setParam('ai_summary_api_key', 'sk-ant-test');
 		Minz_Request::setParam('ai_summary_model', 'claude-sonnet-4-6');
+		Minz_Request::setParam('ai_summary_openai_api_url', 'https://gateway.example/v1');
 		Minz_Request::setParam('ai_summary_api_url', '');
 		Minz_Request::setParam('ai_summary_prompt', 'Custom prompt here');
 		Minz_Request::setParam('ai_summary_timeout', '45');
@@ -93,6 +94,7 @@ final class AiSummaryExtensionTest extends TestCase {
 		self::assertSame('anthropic', FreshRSS_Context::$user_conf->ai_summary_provider);
 		self::assertSame('sk-ant-test', FreshRSS_Context::$user_conf->ai_summary_api_key);
 		self::assertSame('claude-sonnet-4-6', FreshRSS_Context::$user_conf->ai_summary_model);
+		self::assertSame('https://gateway.example/v1', FreshRSS_Context::$user_conf->ai_summary_openai_api_url);
 		self::assertSame('Custom prompt here', FreshRSS_Context::$user_conf->ai_summary_prompt);
 		self::assertSame(45, FreshRSS_Context::$user_conf->ai_summary_timeout);
 	}

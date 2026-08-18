@@ -34,6 +34,11 @@ final class AiSummaryControllerTest extends TestCase {
 		self::assertSame('http://localhost:11434', $ref->getValue());
 	}
 
+	public function testDefaultOpenAiUrl(): void {
+		$ref = new \ReflectionClassConstant(FreshExtension_AiSummary_Controller::class, 'DEFAULT_OPENAI_URL');
+		self::assertSame('https://api.openai.com/v1', $ref->getValue());
+	}
+
 	public function testMaxContentLengthIsPositive(): void {
 		$ref = new \ReflectionClassConstant(FreshExtension_AiSummary_Controller::class, 'MAX_CONTENT_LENGTH');
 		self::assertGreaterThan(0, $ref->getValue());
@@ -132,9 +137,30 @@ final class AiSummaryControllerTest extends TestCase {
 
 	public function testCallOpenAIMethodSignature(): void {
 		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'callOpenAI');
-		self::assertSame(4, $ref->getNumberOfParameters());
+		self::assertSame(5, $ref->getNumberOfParameters());
 		$params = array_map(fn ($p) => $p->getName(), $ref->getParameters());
-		self::assertSame(['apiKey', 'model', 'systemPrompt', 'userPrompt'], $params);
+		self::assertSame(['apiUrl', 'apiKey', 'model', 'systemPrompt', 'userPrompt'], $params);
+	}
+
+	public function testBuildOpenAiUrlAcceptsVersionedAndBareBases(): void {
+		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'buildOpenAiUrl');
+
+		self::assertSame(
+			'https://gateway.example/v1/chat/completions',
+			$ref->invoke($this->controller, 'https://gateway.example/v1'),
+		);
+		self::assertSame(
+			'https://gateway.example/v1/chat/completions',
+			$ref->invoke($this->controller, 'https://gateway.example/'),
+		);
+	}
+
+	public function testBuildOpenAiUrlRejectsUnsupportedSchemes(): void {
+		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'buildOpenAiUrl');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('Invalid OpenAI-compatible API URL.');
+		$ref->invoke($this->controller, 'file:///etc/passwd');
 	}
 
 	public function testCallAnthropicMethodSignature(): void {
