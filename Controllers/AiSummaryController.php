@@ -5,9 +5,9 @@ declare(strict_types=1);
 final class FreshExtension_AiSummary_Controller extends Minz_ActionController {
 
 	private const DEFAULT_MODELS = [
-		'openai' => 'gpt-4o-mini',
-		'anthropic' => 'claude-sonnet-4-6',
-		'gemini' => 'gemini-2.5-flash',
+		'openai' => 'gpt-5-nano',
+		'anthropic' => 'claude-haiku-4-5',
+		'gemini' => 'gemini-3.5-flash-lite',
 		'ollama' => 'llama3.2',
 	];
 

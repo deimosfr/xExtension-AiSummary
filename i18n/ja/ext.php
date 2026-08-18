@@ -10,7 +10,7 @@ return [
 		'api_key_help' => 'Ollamaでは不要です。',
 		'model' => 'モデル',
 		'model_placeholder' => '空欄でデフォルトを使用',
-		'model_help' => 'デフォルト：OpenAI: gpt-4o-mini, Claude: claude-sonnet-4-6, Gemini: gemini-2.5-flash, Ollama: llama3.2',
+		'model_help' => 'デフォルト：OpenAI: gpt-5-nano, Claude: claude-haiku-4-5, Gemini: gemini-3.5-flash-lite, Ollama: llama3.2',
 		'api_url' => 'API URL',
 		'api_url_help' => 'Ollamaのみ必要です。デフォルト：http://localhost:11434',
 		'prompt' => 'カスタムプロンプト',

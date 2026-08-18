@@ -26,9 +26,9 @@
 
   | Provider | Default Model | API Key Required |
   |----------|--------------|:----------------:|
-  | OpenAI (ChatGPT) | `gpt-4o-mini` | Yes |
-  | Anthropic (Claude) | `claude-sonnet-4-6` | Yes |
-  | Google (Gemini) | `gemini-2.5-flash` | Yes |
+  | OpenAI (ChatGPT) | `gpt-5-nano` | Yes |
+  | Anthropic (Claude) | `claude-haiku-4-5` | Yes |
+  | Google (Gemini) | `gemini-3.5-flash-lite` | Yes |
   | Ollama | `llama3.2` | No |
 
 - **Custom prompts** — Override the default summarization prompt. Use `{content}`, `{title}`, and `{language}` placeholders in your template.

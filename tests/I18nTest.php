@@ -109,9 +109,9 @@ final class I18nTest extends TestCase {
 		$data = require $file;
 		$help = $data['ai_summary']['model_help'];
 
-		self::assertStringContainsString('gpt-4o-mini', $help, "Language '{$lang}' model_help missing OpenAI default");
-		self::assertStringContainsString('claude-sonnet-4-6', $help, "Language '{$lang}' model_help missing Claude default");
-		self::assertStringContainsString('gemini-2.5-flash', $help, "Language '{$lang}' model_help missing Gemini default");
+		self::assertStringContainsString('gpt-5-nano', $help, "Language '{$lang}' model_help missing OpenAI default");
+		self::assertStringContainsString('claude-haiku-4-5', $help, "Language '{$lang}' model_help missing Claude default");
+		self::assertStringContainsString('gemini-3.5-flash-lite', $help, "Language '{$lang}' model_help missing Gemini default");
 		self::assertStringContainsString('llama3.2', $help, "Language '{$lang}' model_help missing Ollama default");
 	}
 
