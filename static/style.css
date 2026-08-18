@@ -1,12 +1,11 @@
 .ai-summary-wrapper {
-	text-align: center;
 	display: block;
+	text-align: left;
+	margin: 0.65em 0 0.85em;
 }
 
 .ai-summary-wrapper.ai-summary-initialized {
-	margin-bottom: 1.5em;
-	padding-bottom: 1.5em;
-	border-bottom: 1px solid var(--frss-border-color, #eee);
+	margin-bottom: 0.85em;
 }
 
 /* Hide ONLY in collapsed list items in Normal view */
@@ -15,8 +14,31 @@
 }
 
 .ai-summary-btn {
+	appearance: none;
+	border: 1px solid rgba(128, 128, 128, 0.22);
+	border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+	border-radius: 999px;
+	background: rgba(128, 128, 128, 0.08);
+	background: color-mix(in srgb, currentColor 7%, transparent);
+	color: inherit;
 	cursor: pointer;
-	font-size: 0.9em;
+	font-size: 0.84em;
+	font-weight: 600;
+	line-height: 1.2;
+	padding: 0.42em 0.8em;
+	transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.ai-summary-btn:hover:not(:disabled),
+.ai-summary-btn:focus-visible {
+	border-color: color-mix(in srgb, currentColor 42%, transparent);
+	background: color-mix(in srgb, currentColor 14%, transparent);
+	transform: translateY(-1px);
+}
+
+.ai-summary-btn:focus-visible {
+	outline: 2px solid color-mix(in srgb, currentColor 60%, transparent);
+	outline-offset: 2px;
 }
 
 .ai-summary-btn.ai-summary-loading {
@@ -30,13 +52,14 @@
 	margin-top: 0.8em;
 	padding: 0.8em 1em;
 	color: inherit;
-	border: 2px solid transparent;
+	border: 1px solid rgba(128, 128, 128, 0.38);
+	border: 1px solid color-mix(in srgb, var(--ai-summary-accent, currentColor) 38%, transparent);
 	border-radius: 6px;
-	background:
-		linear-gradient(var(--ai-summary-bg, #f5f5f5), var(--ai-summary-bg, #f5f5f5)) padding-box,
-		linear-gradient(to top right, #3b82f6, #8b5cf6) border-box;
+	background: rgba(128, 128, 128, 0.06);
+	background: color-mix(in srgb, var(--ai-summary-accent, currentColor) 6%, transparent);
 	font-size: 0.92em;
 	line-height: 1.5;
+	box-shadow: none;
 }
 
 .ai-summary-content.ai-summary-visible {

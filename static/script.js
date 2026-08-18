@@ -1,22 +1,38 @@
 'use strict';
 
 (function () {
-	var aiIcon = '<svg class="ai-summary-icon" viewBox="0 0 512 512" width="16" height="16" fill="currentColor">'
-		+ '<path d="M208 0c13 0 22 9 25 21l26 105 105 26c12 3 21 12 21 25s-9 22-21 25l-105 26-26 105c-3 12-12 21-25 21s-22-9-25-21l-26-105L52 202c-12-3-21-12-21-25s9-22 21-25l105-26L183 21c3-12 12-21 25-21z"/>'
-		+ '<path d="M384 288c8 0 14 5 16 13l14 55 55 14c8 2 13 8 13 16s-5 14-13 16l-55 14-14 55c-2 8-8 13-16 13s-14-5-16-13l-14-55-55-14c-8-2-13-8-13-16s5-14 13-16l55-14 14-55c2-8 8-13 16-13z" opacity="0.7"/>'
-		+ '</svg>';
+	var nextSummaryId = 0;
 
 	function initButtons() {
 		var wrappers = document.querySelectorAll('.ai-summary-wrapper:not(.ai-summary-initialized)');
 		wrappers.forEach(function (wrapper) {
 			var label = wrapper.dataset.label || 'Summarize';
-			wrapper.innerHTML = '<button type="button" class="ai-summary-btn btn btn-important">' + aiIcon + ' <span class="ai-summary-label"></span></button>'
-				+ '<div class="ai-summary-content"></div>';
-			// Security fix: use textContent for label
-			var labelSpan = wrapper.querySelector('.ai-summary-label');
-			if (labelSpan) {
-				labelSpan.textContent = label;
-			}
+			var button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'ai-summary-btn';
+			button.setAttribute('aria-expanded', 'false');
+			button.title = label;
+
+			var icon = document.createElement('span');
+			icon.className = 'ai-summary-icon';
+			icon.setAttribute('aria-hidden', 'true');
+			icon.textContent = '✦';
+			button.appendChild(icon);
+
+			var labelSpan = document.createElement('span');
+			labelSpan.className = 'ai-summary-label';
+			labelSpan.textContent = label;
+			button.appendChild(labelSpan);
+
+			var contentDiv = document.createElement('div');
+			contentDiv.className = 'ai-summary-content';
+			contentDiv.id = 'ai-summary-content-' + (++nextSummaryId);
+			contentDiv.setAttribute('role', 'region');
+			contentDiv.setAttribute('aria-live', 'polite');
+			contentDiv.setAttribute('aria-busy', 'false');
+			contentDiv.setAttribute('aria-label', label + ' summary');
+			button.setAttribute('aria-controls', contentDiv.id);
+			wrapper.replaceChildren(button, contentDiv);
 			wrapper.classList.add('ai-summary-initialized');
 		});
 	}
@@ -62,15 +78,35 @@
 		var entryId = wrapper.dataset.entryId;
 		var contentDiv = wrapper.querySelector('.ai-summary-content');
 
+		function syncExpandedState() {
+			btn.setAttribute(
+				'aria-expanded',
+				contentDiv.classList.contains('ai-summary-visible') ? 'true' : 'false',
+			);
+		}
+
+		function showError(message) {
+			var error = document.createElement('p');
+			error.className = 'ai-summary-error';
+			error.textContent = '⚠ ' + message;
+			contentDiv.replaceChildren(error);
+			contentDiv.classList.add('ai-summary-visible');
+			contentDiv.dataset.loaded = '';
+			contentDiv.setAttribute('aria-busy', 'false');
+			syncExpandedState();
+		}
+
 		// Toggle: if summary is visible, hide it
 		if (contentDiv.classList.contains('ai-summary-visible') && contentDiv.dataset.loaded) {
 			contentDiv.classList.remove('ai-summary-visible');
+			btn.setAttribute('aria-expanded', 'false');
 			return;
 		}
 
 		// If already loaded, just show it
 		if (contentDiv.dataset.loaded) {
 			contentDiv.classList.add('ai-summary-visible');
+			btn.setAttribute('aria-expanded', 'true');
 			return;
 		}
 
@@ -99,6 +135,8 @@
 			el = el.parentElement;
 		}
 		contentDiv.classList.add('ai-summary-visible');
+		contentDiv.setAttribute('aria-busy', 'true');
+		syncExpandedState();
 		contentDiv.innerHTML = '<p class="ai-summary-placeholder">Initializing…</p>';
 
 		var formData = new URLSearchParams();
@@ -116,7 +154,7 @@
 			if (contentType.indexOf('application/json') !== -1) {
 				return response.json().then(function (data) {
 					if (data.error) {
-						contentDiv.innerHTML = '<p class="ai-summary-error">⚠ ' + escapeHtml(data.error) + '</p>';
+						showError(data.error);
 					}
 				});
 			}
@@ -149,12 +187,14 @@
 						fullText += data.text;
 						summaryDiv.innerHTML = formatSummary(fullText);
 					} else if (currentEvent === 'error') {
-						contentDiv.innerHTML = '<p class="ai-summary-error">⚠ ' + escapeHtml(data.message) + '</p>';
+						showError(data.message);
 					} else if (currentEvent === 'done') {
 						if (summaryDiv) {
 							summaryDiv.classList.remove('ai-summary-streaming');
 						}
 						contentDiv.dataset.loaded = '1';
+						contentDiv.setAttribute('aria-busy', 'false');
+						syncExpandedState();
 					}
 					currentEvent = '';
 				}
@@ -171,6 +211,8 @@
 								summaryDiv.classList.remove('ai-summary-streaming');
 							}
 							contentDiv.dataset.loaded = '1';
+							contentDiv.setAttribute('aria-busy', 'false');
+							syncExpandedState();
 						}
 						return;
 					}
@@ -189,11 +231,13 @@
 
 			return read();
 		}).catch(function (err) {
-			contentDiv.innerHTML = '<p class="ai-summary-error">⚠ ' + escapeHtml(err.message) + '</p>';
+			showError(err.message);
 		}).finally(function () {
 			btn.disabled = false;
 			btn.classList.remove('ai-summary-loading');
 			btn.innerHTML = originalHTML;
+			contentDiv.setAttribute('aria-busy', 'false');
+			syncExpandedState();
 		});
 	});
 
