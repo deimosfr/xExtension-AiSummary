@@ -165,17 +165,17 @@ final class AiSummaryControllerTest extends TestCase {
 
 	public function testOpenAiPayloadUsesCompletionTokenLimit(): void {
 		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'buildOpenAiPayload');
-		$payload = $ref->invoke($this->controller, 'https://api.openai.com/v1/chat/completions', 'test-model', '', 'Summarize this');
-
-		self::assertSame([
+		$expected = [
 			'model' => 'test-model',
 			'messages' => [['role' => 'user', 'content' => 'Summarize this']],
-			'max_completion_tokens' => 1024,
+			'max_completion_tokens' => 4096,
 			'stream' => true,
-		], $payload);
+		];
 
-		$payload = $ref->invoke($this->controller, 'https://API.OpenAI.com./v1/chat/completions', 'test-model', '', 'Summarize this');
-		self::assertSame(1024, $payload['max_completion_tokens']);
+		foreach (['https://api.openai.com', 'https://API.OpenAI.com.'] as $base) {
+			$payload = $ref->invoke($this->controller, $base . '/v1/chat/completions', 'test-model', '', 'Summarize this');
+			self::assertSame($expected, $payload, $base);
+		}
 	}
 
 	public function testCustomOpenAiPayloadUsesLegacyTokenLimit(): void {
@@ -191,6 +191,25 @@ final class AiSummaryControllerTest extends TestCase {
 			'max_tokens' => 1024,
 			'stream' => true,
 		], $payload);
+	}
+
+	public function testOpenAiStreamRejectsTruncatedSummary(): void {
+		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'handleOpenAiStreamLine');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('The summary is incomplete because the model reached its token limit.');
+		$ref->invoke($this->controller, 'data: {"choices":[{"delta":{},"finish_reason":"length"}]}');
+	}
+
+	public function testOpenAiStreamEmitsSummaryAndAcceptsStop(): void {
+		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'handleOpenAiStreamLine');
+		$output = $this->captureOutput(function () use ($ref): void {
+			$ref->invoke($this->controller, 'data: {"choices":[{"delta":{"content":"Summary"},"finish_reason":null}]}');
+			$ref->invoke($this->controller, 'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}');
+			$ref->invoke($this->controller, 'data: [DONE]');
+		});
+
+		self::assertSame([['event' => 'chunk', 'data' => ['text' => 'Summary']]], $this->parseSSEEvents($output));
 	}
 
 	public function testCallAnthropicMethodSignature(): void {

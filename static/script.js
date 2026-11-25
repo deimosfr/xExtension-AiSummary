@@ -187,7 +187,7 @@
 						fullText += data.text;
 						summaryDiv.innerHTML = formatSummary(fullText);
 					} else if (currentEvent === 'error') {
-						showError(data.message);
+						throw new Error(data.message);
 					} else if (currentEvent === 'done') {
 						if (summaryDiv) {
 							summaryDiv.classList.remove('ai-summary-streaming');
