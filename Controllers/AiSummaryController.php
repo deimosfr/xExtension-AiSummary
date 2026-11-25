@@ -11,7 +11,9 @@ final class FreshExtension_AiSummary_Controller extends Minz_ActionController {
 		'ollama' => 'llama3.2',
 	];
 
-	private const DEFAULT_OPENAI_URL = 'https://api.openai.com/v1';
+	private const OPENAI_HOST = 'api.openai.com';
+
+	private const DEFAULT_OPENAI_URL = 'https://' . self::OPENAI_HOST . '/v1';
 
 	private const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
 
@@ -232,50 +234,69 @@ PROMPT;
 		return $apiUrl . (str_ends_with($apiUrl, '/v1') ? '' : '/v1') . '/chat/completions';
 	}
 
-	private function callOpenAI(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+	/** @return array<string, mixed> */
+	private function buildOpenAiPayload(string $url, string $model, string $systemPrompt, string $userPrompt): array {
 		$messages = [];
 		if ($systemPrompt !== '') {
 			$messages[] = ['role' => 'system', 'content' => $systemPrompt];
 		}
 		$messages[] = ['role' => 'user', 'content' => $userPrompt];
 
+		$host = strtolower(rtrim((string) parse_url($url, PHP_URL_HOST), '.'));
+		// The OpenAI limit also counts reasoning tokens.
+		$tokenLimit = $host === self::OPENAI_HOST
+			? ['max_completion_tokens' => 4096]
+			: ['max_tokens' => 1024];
+
+		return [
+			'model' => $model,
+			'messages' => $messages,
+			...$tokenLimit,
+			'stream' => true,
+		];
+	}
+
+	private function callOpenAI(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+		$url = $this->buildOpenAiUrl($apiUrl);
 		$this->curlStreamRequest(
-			$this->buildOpenAiUrl($apiUrl),
-			['model' => $model, 'messages' => $messages, 'max_tokens' => 1024, 'stream' => true],
+			$url,
+			$this->buildOpenAiPayload($url, $model, $systemPrompt, $userPrompt),
 			['Authorization: Bearer ' . $apiKey, 'Content-Type: application/json'],
-			function (string $line): void {
-				if (!str_starts_with($line, 'data: ')) {
-					return;
-				}
-				$json = substr($line, 6);
-				if (trim($json) === '[DONE]') {
-					return;
-				}
-				$data = json_decode($json, true);
-				if (is_array($data)) {
-					/** @var mixed */
-					$choices = $data['choices'] ?? null;
-					if (is_array($choices) && isset($choices[0])) {
-						/** @var mixed */
-						$choice0 = $choices[0];
-						if (is_array($choice0)) {
-							/** @var mixed */
-							$delta = $choice0['delta'] ?? null;
-							if (is_array($delta)) {
-								$text = $delta['content'] ?? '';
-								$text = is_string($text) ? $text : '';
-								if ($text !== '') {
-									$chunk = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE);
-									if (is_string($chunk)) {
-										$this->sendEvent('chunk', $chunk);
-									}
-								}
-							}
-						}
-					}
-				}
-			},
+			$this->handleOpenAiStreamLine(...),
 		);
+	}
+
+	private function handleOpenAiStreamLine(string $line): void {
+		if (!str_starts_with($line, 'data: ')) {
+			return;
+		}
+		$json = substr($line, 6);
+		if (trim($json) === '[DONE]') {
+			return;
+		}
+		$data = json_decode($json, true);
+		if (!is_array($data)) {
+			return;
+		}
+		/** @var mixed */
+		$choices = $data['choices'] ?? null;
+		/** @var mixed */
+		$choice = is_array($choices) ? ($choices[0] ?? null) : null;
+		if (!is_array($choice)) {
+			return;
+		}
+		if (($choice['finish_reason'] ?? null) === 'length') {
+			throw new \RuntimeException('The summary is incomplete because the model reached its token limit.');
+		}
+		/** @var mixed */
+		$delta = $choice['delta'] ?? null;
+		$text = is_array($delta) ? ($delta['content'] ?? '') : '';
+		if (is_string($text) && $text !== '') {
+			$chunk = json_encode(['text' => $text], JSON_UNESCAPED_UNICODE);
+			if (is_string($chunk)) {
+				$this->sendEvent('chunk', $chunk);
+			}
+		}
 	}
 
 	private function callAnthropic(string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
