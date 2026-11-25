@@ -71,7 +71,8 @@ git clone https://github.com/deimosfr/xExtension-AiSummary.git
 | **AI Provider** | Select OpenAI, Anthropic, Gemini, or Ollama. |
 | **API Key** | Your provider's API key. Not required for Ollama. |
 | **Model** | Leave empty to use the provider's default (see table above), or specify any model your provider supports. |
-| **API URL** | Only for Ollama. Defaults to `http://localhost:11434`. |
+| **API URL (OpenAI-compatible)** | With OpenAI selected, enter a base URL such as `https://openrouter.ai/api/v1` or a full endpoint such as `https://openrouter.ai/api/v1/chat/completions`. Leave blank to use OpenAI. |
+| **API URL (Ollama)** | With Ollama selected, enter its base URL. Defaults to `http://localhost:11434`. |
 | **Custom Prompt** | Override the system prompt sent to the AI. Supports `{content}`, `{title}`, and `{language}` placeholders. Leave empty for the built-in default. |
 | **Language** | Override the summary output language. Defaults to your FreshRSS UI language. |
 

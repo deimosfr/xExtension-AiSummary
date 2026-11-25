@@ -228,8 +228,14 @@ PROMPT;
 			throw new \RuntimeException('Invalid OpenAI-compatible API URL.');
 		}
 
-		$apiUrl = rtrim($apiUrl, '/');
-		return $apiUrl . (str_ends_with($apiUrl, '/v1') ? '' : '/v1') . '/chat/completions';
+		$path = rtrim($parts['path'] ?? '', '/');
+		$suffixOffset = strcspn($apiUrl, '?#');
+		$url = rtrim(substr($apiUrl, 0, $suffixOffset), '/');
+		$endpoint = '/chat/completions';
+		if (!str_ends_with($path, $endpoint)) {
+			$url .= (str_ends_with($path, '/v1') ? '' : '/v1') . $endpoint;
+		}
+		return $url . substr($apiUrl, $suffixOffset);
 	}
 
 	private function callOpenAI(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {

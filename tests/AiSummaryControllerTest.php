@@ -153,6 +153,19 @@ final class AiSummaryControllerTest extends TestCase {
 			'https://gateway.example/v1/chat/completions',
 			$ref->invoke($this->controller, 'https://gateway.example/'),
 		);
+		self::assertSame(
+			'https://openrouter.ai/api/v1/chat/completions?mode=stream',
+			$ref->invoke($this->controller, 'https://openrouter.ai/api/v1?mode=stream'),
+		);
+	}
+
+	public function testBuildOpenAiUrlAcceptsFullChatCompletionsEndpoints(): void {
+		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'buildOpenAiUrl');
+		$endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+
+		self::assertSame($endpoint, $ref->invoke($this->controller, $endpoint));
+		self::assertSame($endpoint, $ref->invoke($this->controller, $endpoint . '/'));
+		self::assertSame($endpoint . '?route=example/', $ref->invoke($this->controller, $endpoint . '/?route=example/'));
 	}
 
 	public function testBuildOpenAiUrlRejectsUnsupportedSchemes(): void {
