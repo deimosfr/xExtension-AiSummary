@@ -11,7 +11,9 @@ final class FreshExtension_AiSummary_Controller extends Minz_ActionController {
 		'ollama' => 'llama3.2',
 	];
 
-	private const DEFAULT_OPENAI_URL = 'https://api.openai.com/v1';
+	private const OPENAI_HOST = 'api.openai.com';
+
+	private const DEFAULT_OPENAI_URL = 'https://' . self::OPENAI_HOST . '/v1';
 
 	private const DEFAULT_OLLAMA_URL = 'http://localhost:11434';
 
@@ -232,16 +234,30 @@ PROMPT;
 		return $apiUrl . (str_ends_with($apiUrl, '/v1') ? '' : '/v1') . '/chat/completions';
 	}
 
-	private function callOpenAI(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+	/** @return array<string, mixed> */
+	private function buildOpenAiPayload(string $url, string $model, string $systemPrompt, string $userPrompt): array {
 		$messages = [];
 		if ($systemPrompt !== '') {
 			$messages[] = ['role' => 'system', 'content' => $systemPrompt];
 		}
 		$messages[] = ['role' => 'user', 'content' => $userPrompt];
 
+		$host = strtolower(rtrim((string) parse_url($url, PHP_URL_HOST), '.'));
+		$tokenLimitParameter = $host === self::OPENAI_HOST ? 'max_completion_tokens' : 'max_tokens';
+
+		return [
+			'model' => $model,
+			'messages' => $messages,
+			$tokenLimitParameter => 1024,
+			'stream' => true,
+		];
+	}
+
+	private function callOpenAI(string $apiUrl, string $apiKey, string $model, string $systemPrompt, string $userPrompt): void {
+		$url = $this->buildOpenAiUrl($apiUrl);
 		$this->curlStreamRequest(
-			$this->buildOpenAiUrl($apiUrl),
-			['model' => $model, 'messages' => $messages, 'max_tokens' => 1024, 'stream' => true],
+			$url,
+			$this->buildOpenAiPayload($url, $model, $systemPrompt, $userPrompt),
 			['Authorization: Bearer ' . $apiKey, 'Content-Type: application/json'],
 			function (string $line): void {
 				if (!str_starts_with($line, 'data: ')) {

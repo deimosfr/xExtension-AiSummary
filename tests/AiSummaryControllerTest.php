@@ -163,6 +163,36 @@ final class AiSummaryControllerTest extends TestCase {
 		$ref->invoke($this->controller, 'file:///etc/passwd');
 	}
 
+	public function testOpenAiPayloadUsesCompletionTokenLimit(): void {
+		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'buildOpenAiPayload');
+		$payload = $ref->invoke($this->controller, 'https://api.openai.com/v1/chat/completions', 'test-model', '', 'Summarize this');
+
+		self::assertSame([
+			'model' => 'test-model',
+			'messages' => [['role' => 'user', 'content' => 'Summarize this']],
+			'max_completion_tokens' => 1024,
+			'stream' => true,
+		], $payload);
+
+		$payload = $ref->invoke($this->controller, 'https://API.OpenAI.com./v1/chat/completions', 'test-model', '', 'Summarize this');
+		self::assertSame(1024, $payload['max_completion_tokens']);
+	}
+
+	public function testCustomOpenAiPayloadUsesLegacyTokenLimit(): void {
+		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'buildOpenAiPayload');
+		$payload = $ref->invoke($this->controller, 'https://api.openai.com.gateway.example/v1/chat/completions', 'test-model', 'Be concise', 'Summarize this');
+
+		self::assertSame([
+			'model' => 'test-model',
+			'messages' => [
+				['role' => 'system', 'content' => 'Be concise'],
+				['role' => 'user', 'content' => 'Summarize this'],
+			],
+			'max_tokens' => 1024,
+			'stream' => true,
+		], $payload);
+	}
+
 	public function testCallAnthropicMethodSignature(): void {
 		$ref = new \ReflectionMethod(FreshExtension_AiSummary_Controller::class, 'callAnthropic');
 		self::assertSame(4, $ref->getNumberOfParameters());
